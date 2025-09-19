@@ -1,0 +1,9 @@
+Pontos necessarios para a criação do projeto:
+
+-Ter dados do Professor que reservou a sala; com dia, horário e período, número e andar da sala.
+
+-Verificar salas já agendadas, quantidade de alunos que podem ser comportados na sala e garantir agendamento com antecedência.
+
+-Para a devolução de chave: confirmação da devolução da chave com relatório, estojo de chave com todos os itens(se falta algo aparecer no relatório)
+
+-Personalização: Modo claro e escuro, layout sugestivo, alertas sonoros.
