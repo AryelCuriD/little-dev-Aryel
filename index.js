@@ -8,14 +8,25 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'src')));
 
+// Rotas das páginas HTML
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'src', 'index.html'));
 });
 
-// =============================
-// ROTAS API - SALAS
-// =============================
-app.get('/salas', async (req, res) => {
+app.get('/reservas', (req, res) => {
+  res.sendFile(path.join(__dirname, 'src', 'reservas.html'));
+});
+
+app.get('/relatorios', (req, res) => {
+  res.sendFile(path.join(__dirname, 'src', 'relatorios.html'));
+});
+
+app.get('/usuario', (req, res) => {
+  res.sendFile(path.join(__dirname, 'src', 'usuario.html'));
+});
+
+// Rotas API - Salas
+app.get('/api/salas', async (req, res) => {
   try {
     const results = await query('SELECT * FROM salas');
     res.json(results);
@@ -24,7 +35,7 @@ app.get('/salas', async (req, res) => {
   }
 });
 
-app.post('/salas', async (req, res) => {
+app.post('/api/salas', async (req, res) => {
   const { numero_sala, tipo_sala, localizacao, capacidade, descricao } = req.body;
   try {
     const results = await query(
@@ -37,10 +48,8 @@ app.post('/salas', async (req, res) => {
   }
 });
 
-// =============================
-// ROTAS API - RESERVAS
-// =============================
-app.get('/reservas', async (req, res) => {
+// Rotas API - Reservas
+app.get('/api/reservas', async (req, res) => {
   try {
     const results = await query(
       `SELECT r.id, r.solicitante, r.data_inicio, r.data_fim,
@@ -54,7 +63,7 @@ app.get('/reservas', async (req, res) => {
   }
 });
 
-app.post('/reservas', async (req, res) => {
+app.post('/api/reservas', async (req, res) => {
   const { solicitante, data_inicio, data_fim, sala_id } = req.body;
   try {
     const results = await query(
@@ -67,10 +76,8 @@ app.post('/reservas', async (req, res) => {
   }
 });
 
-// =============================
-// ROTAS API - DEVOLUÇÃO ESTOJO
-// =============================
-app.get('/devolucao', async (req, res) => {
+// Rotas API - Devolução Estojo
+app.get('/api/devolucao', async (req, res) => {
   try {
     const results = await query(
       `SELECT d.id, d.estojo_completo, d.observacao,
@@ -85,7 +92,7 @@ app.get('/devolucao', async (req, res) => {
   }
 });
 
-app.post('/devolucao', async (req, res) => {
+app.post('/api/devolucao', async (req, res) => {
   const { reserva_id, estojo_completo, observacao } = req.body;
   try {
     const results = await query(
@@ -98,7 +105,6 @@ app.post('/devolucao', async (req, res) => {
   }
 });
 
-// =============================
 app.listen(8080, () => {
   console.log(`Servidor rodando em http://localhost:8080`);
 });

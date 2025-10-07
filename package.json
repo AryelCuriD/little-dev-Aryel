@@ -12,5 +12,16 @@
   "dependencies": {
     "express": "^5.1.0",
     "mysql2": "^3.15.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AryelCuriD/little-dev-Aryel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AryelCuriD/little-dev-Aryel/issues"
+  },
+  "homepage": "https://github.com/AryelCuriD/little-dev-Aryel#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
