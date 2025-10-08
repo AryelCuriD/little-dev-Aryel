@@ -32,3 +32,16 @@ document.querySelectorAll('.paginas a').forEach(link => {
 });
 
 document.addEventListener('DOMContentLoaded', setActivePage);
+
+
+
+function abrirNotificacoes() {
+    document.getElementById("overlay").style.display = "block";
+    document.getElementById("notificacoes").style.display = "block";
+  }
+  
+  function fecharNotificacoes() {
+    document.getElementById("overlay").style.display = "none";
+    document.getElementById("notificacoes").style.display = "none";
+  }
+  

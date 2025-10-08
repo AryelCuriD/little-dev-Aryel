@@ -5,10 +5,50 @@
   <meta charset="UTF-8">
   <title>Projeto Little Dev</title>
   <link rel="stylesheet" href="style.css"> 
+
 </head>
 
 <body>
-    <footer>
+  <div class="container">
+    <div class="top-row">
+      <div class="div-tabela"></div>
+      <div class="div-informacao"></div>
+    </div>
+    <div class="div-paginas">
+      <div class="paginas-grid">
+        <div class="pagina-item">
+          <h3>Adicionar Sala</h3>
+          <img src="./imgs/plus.png" alt="Adicionar Sala">
+        </div>
+        <div class="pagina-item">
+          <h3>Lista de Salas</h3>
+          <img src="./imgs/board.png" alt="Lista de Salas">
+        </div>
+        <div class="pagina-item">
+          <h3>Adicionar Relatório</h3>
+          <img src="./imgs/plus (1).png" alt="Adicionar Relatório">
+        </div>
+        <div class="pagina-item">
+          <h3>Lista de Relatórios</h3>
+          <img src="./imgs/list.png" alt="Lista de Relatórios">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fundo escurecido -->
+<div id="overlay" class="overlay" onclick="fecharNotificacoes()"></div>
+
+<!-- Bloco de notificações -->
+<div id="notificacoes" class="notificacoes">
+  <h3>Notificações</h3>
+  <div class="notificacao-area">
+    <!-- As notificações serão inseridas aqui futuramente -->
+  </div>
+</div>
+
+
+  <footer>
     <div class="logo-area">
         <img src="imgs/Logos - Sistema Fiep RGB_BRANCO_SENAI.png">
     </div>
@@ -20,10 +60,11 @@
     </nav>
     
     <div class="icons">
-        <img src="imgs/bell.png" alt="Bell Icon" onclick="awd()">
+        <img src="imgs/bell.png" alt="Bell Icon" onclick="abrirNotificacoes()">
         <img src="imgs/user.png" alt="User Icon" onclick="paginaUsuario()">
     </div>
-    </footer>
+  </footer>
+
 
   <script src="script.js"></script>
 </body>
