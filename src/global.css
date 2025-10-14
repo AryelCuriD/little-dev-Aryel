@@ -1,0 +1,83 @@
+/* Importando a fonte Open Sans */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+
+/* RESET & FONT */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: 'Open Sans', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f1f1f1; /* fundo padrão */
+}
+
+/* FOOTER (barra inferior fixa) */
+footer {
+  background-color: #192A6B;
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 1000;
+  height: 70px;
+}
+
+/* LOGO SENAI */
+.logo-area {
+  margin-right: auto;
+}
+
+.logo-area img {
+  height: 50px;
+  vertical-align: middle;
+}
+
+/* NAVEGAÇÃO (links centrais do footer) */
+.paginas {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.paginas a {
+  color: white;
+  text-decoration: none;
+  line-height: 1;
+  font-weight: 700;
+  position: relative;
+  display: inline-block;
+}
+
+.paginas a.active::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 2px;
+  background-color: white;
+}
+
+/* ICONES (sino e usuário) */
+.icons {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.icons img {
+  height: 30px;
+  vertical-align: middle;
+  cursor: pointer;
+}

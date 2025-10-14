@@ -1,7 +1,6 @@
 {
   "name": "little-dev-aryel-main",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,5 +22,6 @@
   "homepage": "https://github.com/AryelCuriD/little-dev-Aryel#readme",
   "devDependencies": {
     "nodemon": "^3.1.10"
-  }
+  },
+  "description": ""
 }

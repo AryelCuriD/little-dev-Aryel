@@ -45,3 +45,21 @@ function abrirNotificacoes() {
     document.getElementById("notificacoes").style.display = "none";
   }
   
+
+  // === TROCA ENTRE PERFIL E PREFERÊNCIAS === //
+document.addEventListener('DOMContentLoaded', () => {
+  const menuItems = document.querySelectorAll('.menu-item');
+  const cards = document.querySelectorAll('.card-conteudo');
+
+  menuItems.forEach((item, index) => {
+    item.addEventListener('click', () => {
+      // Remove classe "ativo" de todos
+      menuItems.forEach(i => i.classList.remove('ativo'));
+      cards.forEach(c => c.classList.remove('ativo'));
+
+      // Ativa o selecionado
+      item.classList.add('ativo');
+      cards[index].classList.add('ativo');
+    });
+  });
+});

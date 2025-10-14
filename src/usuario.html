@@ -1,29 +1,64 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
   <meta charset="UTF-8">
-  <title>Projeto Little Dev</title>
-  <link rel="stylesheet" href="style.css"> 
+  <title>Perfil do Usuário</title>
+  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="usuario.css">
 </head>
 
 <body>
-    <footer>
+  <div class="usuario-container">
+    <!-- Barra lateral -->
+    <aside class="menu-lateral">
+      <div class="menu-item ativo">
+        <img src="./imgs/user.png" alt="Perfil">
+      </div>
+      <div class="menu-item">
+        <img src="./imgs/paint-brush.png" alt="Preferências">
+      </div>
+    </aside>
+
+    <!-- Conteúdo principal -->
+    <section class="conteudo-principal">
+      <div class="card-conteudo ativo" id="perfil">
+        <img src="./imgs/user.png" alt="Ícone usuário" class="icone-grande">
+        <p><strong>Nome:</strong> Aryel Curi Dumpierre de Freitas</p>
+        <p><strong>Email Institucional:</strong> arye.freitas00993656@sesisenaiPR.org.br</p>
+        <button class="botao">Alterar senha</button>
+      </div>
+
+      <div class="card-conteudo" id="preferencias">
+        <img src="./imgs/paint-brush.png" alt="Ícone pincel" class="icone-grande">
+        <div class="config-item">
+          <label>Modo Claro/Escuro:</label>
+          <input type="checkbox" class="toggle">
+        </div>
+        <div class="config-item">
+          <label>Ativar/desativar notificações:</label>
+          <input type="checkbox" class="toggle">
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer global -->
+  <footer>
     <div class="logo-area">
-        <img src="imgs/Logos - Sistema Fiep RGB_BRANCO_SENAI.png">
+      <img src="imgs/Logos - Sistema Fiep RGB_BRANCO_SENAI.png">
     </div>
     
     <nav class="paginas">
-        <a href="/" data-page="home">Página Inicial</a> |
-        <a href="/reservas" data-page="reservas">Reservas</a> |
-        <a href="/relatorios" data-page="relatorios">Relatórios</a>
+      <a href="/" data-page="home">Página Inicial</a> |
+      <a href="/reservas" data-page="reservas">Reservas</a> |
+      <a href="/relatorios" data-page="relatorios">Relatórios</a>
     </nav>
     
     <div class="icons">
-        <img src="imgs/bell.png" alt="Bell Icon" onclick="awd()">
-        <img src="imgs/user.png" alt="User Icon" onclick="paginaUsuario()">
+      <img src="imgs/bell.png" alt="Bell Icon">
+      <img src="imgs/user.png" alt="User Icon" onclick="paginaUsuario()">
     </div>
-    </footer>
+  </footer>
 
   <script src="script.js"></script>
 </body>
