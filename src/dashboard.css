@@ -43,7 +43,7 @@
   top: 50%;
   left: 0;
   width: 100%;
-  height: 1px;
+  height: 2px; /* Aumentei para maior visibilidade */
   background-color: #111D4A;
   transform: translateY(-50%);
 }
@@ -53,7 +53,7 @@
   position: absolute;
   top: 0;
   left: 50%;
-  width: 1px;
+  width: 2px; /* Aumentei para maior visibilidade */
   height: 100%;
   background-color: #111D4A;
   transform: translateX(-50%);
@@ -97,4 +97,41 @@
 
 .pagina-item img:hover {
   transform: scale(1.1);
+}
+
+/* ESTILOS PARA OVERLAY E NOTIFICAÇÕES */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+}
+
+.notificacoes {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 1002;
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notificacoes h3 {
+  margin-top: 0;
+  color: #192A6B;
+}
+
+.notificacao-area {
+  margin-top: 10px;
 }
