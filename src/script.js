@@ -63,3 +63,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+async function carregarEstatisticasDashboard() {
+  try {
+    const response = await fetch('http://localhost:8080/api/dashboard');
+    const data = await response.json();
+
+    document.getElementById('salas-disponiveis').textContent = data.salasDisponiveis;
+    document.getElementById('labs-disponiveis').textContent = data.labsDisponiveis;
+    document.getElementById('reservas-ativas').textContent = data.reservasAtivas;
+    document.getElementById('devolucoes-pendentes').textContent = data.devolucoesPendentes;
+  } catch (error) {
+    console.error('Erro ao carregar estatísticas:', error);
+  }
+}
+
+// Chamar quando a página carregar
+document.addEventListener('DOMContentLoaded', carregarEstatisticasDashboard);

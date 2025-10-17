@@ -35,6 +35,31 @@ app.get('/api/salas', async (req, res) => {
   }
 });
 
+app.get('/api/dashboard', async (req, res) => {
+  try {
+    // Conta salas comuns e laboratórios separadamente
+    const [salasResult] = await connection.query("SELECT COUNT(*) AS total FROM salas WHERE tipo_sala LIKE 'Sala%'");
+    const [labsResult] = await connection.query("SELECT COUNT(*) AS total FROM salas WHERE tipo_sala LIKE 'Laboratório%'");
+
+    // Conta reservas ativas
+    const [reservasAtivasResult] = await connection.query("SELECT COUNT(*) AS total FROM reservas WHERE status = 'ativa'");
+
+    // Conta devoluções pendentes
+    const [devolucoesResult] = await connection.query("SELECT COUNT(*) AS total FROM devolucao_estojo WHERE estojo_completo = 'FALSE'");
+
+    res.json({
+      salasDisponiveis: salasResult.total,
+      labsDisponiveis: labsResult.total,
+      reservasAtivas: reservasAtivasResult.total,
+      devolucoesPendentes: devolucoesResult.total
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao carregar estatísticas do dashboard' });
+  }
+});
+
+
 app.post('/api/salas', async (req, res) => {
   const { numero_sala, tipo_sala, localizacao, capacidade, descricao } = req.body;
   try {

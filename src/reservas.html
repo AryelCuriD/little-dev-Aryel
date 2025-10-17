@@ -3,27 +3,76 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Projeto Little Dev</title>
-  <link rel="stylesheet" href="global.css"> 
+  <title>Salas - Projeto Little Dev</title>
+  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="reservas.css">
 </head>
 
 <body>
-    <footer>
+  <div class="salas-container">
+    <!-- Conteúdo principal -->
+    <div class="salas-content">
+
+      <!-- Lista de Salas -->
+      <div class="salas-lista" id="salas-lista">
+        <!-- Os cards de sala serão inseridos dinamicamente aqui -->
+      </div>
+
+      <!-- Filtros laterais -->
+      <aside class="filtros-salas">
+        <div class="filtros-card">
+          <div class="filtros-header">
+            <div class="icon-filtro">
+              <img src="./imgs/filter.png" alt="Filtro">
+            </div>
+            <h2>Filtrar Salas</h2>
+          </div>
+
+          <div class="filtros-opcoes">
+            <div class="filtro-item">
+              <label for="tipo">Tipo de Sala</label>
+              <select id="tipo" onchange="filtrarSalas()">
+                <option value="todos">Todos</option>
+              </select>
+            </div>
+
+            <div class="filtro-item">
+              <label for="localizacao">Localização/Piso</label>
+              <select id="localizacao" onchange="filtrarSalas()">
+                <option value="todos">Todos</option>
+              </select>
+            </div>
+
+            <div class="filtro-item">
+              <label for="capacidade">Capacidade de Alunos</label>
+              <select id="capacidade" onchange="filtrarSalas()">
+                <option value="todos">Todos</option>
+                <option value="0-20">0-20</option>
+                <option value="20-40">20-40</option>
+                <option value="40+">40+</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <footer>
     <div class="logo-area">
-        <img src="imgs/Logos - Sistema Fiep RGB_BRANCO_SENAI.png">
+      <img src="imgs/Logos - Sistema Fiep RGB_BRANCO_SENAI.png">
     </div>
-    
     <nav class="paginas">
-        <a href="/" data-page="home">Página Inicial</a> |
-        <a href="/reservas" data-page="reservas">Reservas</a> |
-        <a href="/relatorios" data-page="relatorios">Relatórios</a>
+      <a href="/" data-page="home">Página Inicial</a> |
+      <a href="/reservas" data-page="reservas">Reservas</a> |
+      <a href="/relatorios" data-page="relatorios">Relatórios</a>
     </nav>
-    
     <div class="icons">
-        <img src="imgs/bell.png" alt="Bell Icon" onclick="awd()">
-        <img src="imgs/user.png" alt="User Icon" onclick="paginaUsuario()">
+      <img src="imgs/bell.png" alt="Bell Icon" onclick="abrirNotificacoes()">
+      <img src="imgs/user.png" alt="User Icon" onclick="paginaUsuario()">
     </div>
-    </footer>
+  </footer>
 
   <script src="script.js"></script>
 </body>

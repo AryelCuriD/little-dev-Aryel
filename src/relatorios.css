@@ -1,0 +1,71 @@
+.container-relatorios {
+    min-height: calc(100vh - 70px);
+    background-color: #f1f1f1;
+    padding: 40px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+  
+  /* Cards de estatísticas */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+  }
+  
+  .card-relatorio {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .card-relatorio h3 {
+    font-size: 1rem;
+    color: #192A6B;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  
+  .card-relatorio p {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #192A6B;
+  }
+  
+  /* Tabela de relatórios */
+  .card-tabela-relatorio {
+    background-color: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+  
+  .card-tabela-relatorio h2 {
+    color: #192A6B;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  
+  .card-tabela-relatorio table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  th {
+    background-color: #192A6B;
+    color: white;
+    padding: 12px 15px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  
+  td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+    font-size: 0.9rem;
+  }
+  

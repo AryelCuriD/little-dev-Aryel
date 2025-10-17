@@ -1,29 +1,70 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
-  <meta charset="UTF-8">
-  <title>Projeto Little Dev</title>
-  <link rel="stylesheet" href="global.css"> 
+  <meta charset="UTF-8" />
+  <title>Relatórios</title>
+  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="relatorios.css">
 </head>
-
 <body>
-    <footer>
+
+  <div class="container-relatorios">
+    <div class="cards-grid">
+      <div class="card-relatorio">
+        <h3>Salas disponíveis</h3>
+        <p>12</p>
+      </div>
+      <div class="card-relatorio">
+        <h3>Laboratórios disponíveis</h3>
+        <p>6</p>
+      </div>
+      <div class="card-relatorio">
+        <h3>Reservas ativas</h3>
+        <p>8</p>
+      </div>
+      <div class="card-relatorio">
+        <h3>Devoluções pendentes</h3>
+        <p>3</p>
+      </div>
+    </div>
+
+    <div class="card-tabela-relatorio">
+      <h2>Devoluções de chave pendentes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Sala</th>
+            <th>Professor</th>
+            <th>Data</th>
+            <th>Observações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>310</td>
+            <td>Prof. Berti</td>
+            <td>25/11/2024</td>
+            <td>Faltando apagador</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
     <div class="logo-area">
-        <img src="imgs/Logos - Sistema Fiep RGB_BRANCO_SENAI.png">
+      <img src="imgs/Logos - Sistema Fiep RGB_BRANCO_SENAI.png" alt="Logo">
     </div>
-    
     <nav class="paginas">
-        <a href="/" data-page="home">Página Inicial</a> |
-        <a href="/reservas" data-page="reservas">Reservas</a> |
-        <a href="/relatorios" data-page="relatorios">Relatórios</a>
+      <a href="/" data-page="home">Página Inicial</a> |
+      <a href="/reservas" data-page="reservas">Reservas</a> |
+      <a href="/relatorios" data-page="relatorios">Relatórios</a>
     </nav>
-    
     <div class="icons">
-        <img src="imgs/bell.png" alt="Bell Icon" onclick="awd()">
-        <img src="imgs/user.png" alt="User Icon" onclick="paginaUsuario()">
+      <img src="imgs/bell.png" alt="Notificações">
+      <img src="imgs/user.png" alt="Usuário" onclick="paginaUsuario()">
     </div>
-    </footer>
+  </footer>
 
   <script src="script.js"></script>
 </body>
