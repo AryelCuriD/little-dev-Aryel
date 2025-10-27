@@ -136,3 +136,136 @@
   margin-top: 10px;
 }
 
+/* === MODAL ADICIONAR SALA === */
+.modal-adicionar {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-adicionar-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  cursor: pointer;
+  color: #666;
+}
+
+.modal-adicionar-body {
+  display: flex;
+  gap: 30px;
+  padding: 30px;
+  flex-wrap: wrap;
+}
+
+.imagem-upload {
+  flex: 0 0 200px;
+  text-align: center;
+}
+
+.upload-label {
+  cursor: pointer;
+  display: block;
+}
+
+#preview-imagem {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 3px dashed #ccc;
+}
+
+.form-adicionar {
+  flex: 1;
+  min-width: 300px;
+}
+
+.form-adicionar h3 {
+  margin-top: 0;
+  color: #192a6b;
+  font-size: 1.3rem;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #111d4a;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: #111d4a;
+}
+
+.bolinha-checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid #111d4a;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-block;
+  transition: 0.2s;
+}
+
+.bolinha-checkbox.preenchida {
+  background-color: #111d4a;
+}
+
+.btn-adicionar-sala {
+  background: #28a745;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
+  font-size: 1.1rem;
+}
+
+.btn-adicionar-sala:hover {
+  background: #218838;
+}

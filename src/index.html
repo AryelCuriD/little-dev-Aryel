@@ -19,11 +19,11 @@
       <div class="paginas-grid">
         <div class="pagina-item">
           <h3>Adicionar Sala</h3>
-          <img src="./imgs/plus.png" alt="Adicionar Sala">
+          <img src="./imgs/plus.png" alt="Adicionar Sala" onclick="abrirModalAdicionar()">
         </div>
         <div class="pagina-item">
           <h3>Lista de Salas</h3>
-          <img src="./imgs/board.png" alt="Lista de Salas">
+          <img src="./imgs/board.png" alt="Lista de Salas" onclick="window.location.href = '/reservas';">
         </div>
         <div class="pagina-item">
           <h3>Adicionar Relatório</h3>
@@ -48,6 +48,80 @@
   </div>
 </div>
 
+<!-- MODAL ADICIONAR SALA -->
+<div id="modal-adicionar-sala" class="modal-adicionar" style="display: none;">
+  <div class="modal-adicionar-content">
+    <span class="modal-close" onclick="fecharModalAdicionar()">×</span>
+
+    <div class="modal-adicionar-body">
+      <!-- IMAGEM -->
+      <div class="imagem-upload">
+        <label for="upload-imagem" class="upload-label">
+          <img src="./imgs/plus-photo.png" alt="Adicionar foto" id="preview-imagem">
+        </label>
+        <input type="file" id="upload-imagem" accept="image/*" onchange="previewImagem(event)">
+      </div>
+
+      <!-- FORMULÁRIO -->
+      <div class="form-adicionar">
+        <h3>Detalhes da Sala:</h3>
+
+        <!-- Número da sala -->
+        <div class="form-group">
+          <label>Número da sala:</label>
+          <input type="text" id="novo-numero" placeholder="Ex: 222" maxlength="3">
+        </div>
+
+        <!-- Checkboxes com bolinhas -->
+        <div class="checkbox-group">
+          <label>Possui Projetor:</label>
+          <span class="bolinha-checkbox" id="check-projetor" onclick="toggleBolinha(this)"></span>
+        </div>
+        <div class="checkbox-group">
+          <label>Possui Ar-Condicionado:</label>
+          <span class="bolinha-checkbox" id="check-ar" onclick="toggleBolinha(this)"></span>
+        </div>
+        <div class="checkbox-group">
+          <label>Possui Televisão:</label>
+          <span class="bolinha-checkbox" id="check-tv" onclick="toggleBolinha(this)"></span>
+        </div>
+        <div class="checkbox-group">
+          <label>Possui Computador:</label>
+          <span class="bolinha-checkbox" id="check-pc" onclick="toggleBolinha(this)"></span>
+        </div>
+
+        <!-- Selects -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Capacidade de Alunos</label>
+            <select id="novo-capacidade">
+              <option value="">Escolha uma opção</option>
+              <option value="0-20">0-20 alunos</option>
+              <option value="20-40">20-40 alunos</option>
+              <option value="40+">40+ alunos</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Localização/Piso</label>
+            <select id="novo-localizacao">
+              <option value="">Escolha uma opção</option>
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Sala</label>
+            <select id="novo-tipo">
+              <option value="">Escolha uma opção</option>
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-adicionar-sala" onclick="adicionarSala()">Adicionar Sala</button>
+      </div>
+    </div>
+  </div>
+</div>
 
   <footer>
     <div class="logo-area">
@@ -65,6 +139,7 @@
         <img src="imgs/user.png" alt="User Icon" onclick="paginaUsuario()">
     </div>
   </footer>
+
 
 
   <script src="script.js"></script>
