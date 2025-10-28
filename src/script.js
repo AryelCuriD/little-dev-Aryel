@@ -268,12 +268,18 @@ function abrirModal(sala) {
   setBolinha('modal-tv', sala.televisao);
   setBolinha('modal-pc', sala.computador);
 
-  // === RESET RESERVA ===
+  // === RESET RESERVA + INICIALIZA CALENDÁRIO NO MÊS ATUAL ===
   dataSelecionada = null;
   el("solicitante").value = "";
   el("periodo").value = "";
-  renderizarCalendario();
-  atualizarStatusDisponibilidade();
+
+  // INICIALIZA O CALENDÁRIO NO MÊS E ANO ATUAL
+  const hoje = new Date();
+  calendarioMes = hoje.getMonth();     // 0-11
+  calendarioAno = hoje.getFullYear();
+
+  renderizarCalendario();              // agora só mostra futuro
+  atualizarStatusDisponibilidade();    // limpa status
 
   // === ABRE MODAL ===
   document.getElementById("modal-detalhes").style.display = "flex";
@@ -290,38 +296,62 @@ function fecharModal() {
 /**
  * RENDERIZA CALENDÁRIO SIMPLES
  */
+/**
+ * CALENDÁRIO DINÂMICO COM NAVEGAÇÃO DE MÊS
+ */
+let calendarioMes = new Date().getMonth(); // 0-11
+let calendarioAno = new Date().getFullYear();
+
 function renderizarCalendario() {
   const container = document.getElementById('calendario');
+  if (!container) return;
+
   const hoje = new Date();
-  const mes = hoje.getMonth();
-  const ano = hoje.getFullYear();
+  hoje.setHours(0, 0, 0, 0); // remove hora
+
+  const mesAtual = new Date(calendarioAno, calendarioMes);
+  const nomeMes = mesAtual.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+
+  const primeiroDia = new Date(calendarioAno, calendarioMes, 1).getDay();
+  const diasNoMes = new Date(calendarioAno, calendarioMes + 1, 0).getDate();
 
   let html = `
-    <div style="text-align:center; margin-bottom:10px; font-weight:bold;">
-      ${hoje.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}
+    <div class="calendario-header">
+      <button onclick="mudarMes(-1)" class="calendario-seta" id="seta-esquerda">←</button>
+      <div class="calendario-titulo">${nomeMes}</div>
+      <button onclick="mudarMes(1)" class="calendario-seta">→</button>
     </div>
-    <div style="display:grid; grid-template-columns: repeat(7, 1fr); text-align:center; font-weight:bold; margin-bottom:5px;">
+    <div class="calendario-dias-semana">
       <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
     </div>
-    <div style="display:grid; grid-template-columns: repeat(7, 1fr); gap:5px;">
+    <div class="calendario-grid">
   `;
 
-  const primeiroDia = new Date(ano, mes, 1).getDay();
-  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-
+  // Preenche células vazias
   for (let i = 0; i < primeiroDia; i++) {
-    html += `<div></div>`;
+    html += `<div class="calendario-dia vazio"></div>`;
   }
 
+  // Preenche os dias
   for (let dia = 1; dia <= diasNoMes; dia++) {
-    const data = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-    const isHoje = dia === hoje.getDate();
+    const data = new Date(calendarioAno, calendarioMes, dia);
+    data.setHours(0, 0, 0, 0);
+
+    const dataStr = `${calendarioAno}-${String(calendarioMes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+    const isHoje = data.getTime() === hoje.getTime();
+    const isPassado = data < hoje;
+    const isSelecionado = dataStr === dataSelecionada;
+
+    const classe = isPassado 
+      ? 'calendario-dia desabilitado' 
+      : `calendario-dia ${isHoje ? 'hoje' : ''} ${isSelecionado ? 'selecionado' : ''}`;
+
+    const onclick = isPassado ? '' : `onclick="selecionarDia('${dataStr}')"`;
+
     html += `
-      <div onclick="selecionarDia('${data}')" 
-           style="padding:8px; border:1px solid #ddd; border-radius:6px; cursor:pointer; 
-                  ${isHoje ? 'background:#e3f2fd; font-weight:bold;' : ''}"
-           onmouseover="this.style.background='#f0f0f0'" 
-           onmouseout="this.style.background=${isHoje ? '#e3f2fd' : 'white'}">
+      <div ${onclick} class="${classe}"
+           onmouseover="${!isPassado ? 'this.style.background=\'#f0f0f0\'' : ''}"
+           onmouseout="${!isPassado ? 'this.style.background=\'\' ' : ''}">
         ${dia}
       </div>
     `;
@@ -329,6 +359,16 @@ function renderizarCalendario() {
 
   html += `</div>`;
   container.innerHTML = html;
+
+  // Desabilita seta esquerda se for o mês atual
+  const setaEsquerda = document.getElementById('seta-esquerda');
+  if (setaEsquerda) {
+    const mesAtualAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+    setaEsquerda.disabled = (calendarioMes === mesAtualAtual && calendarioAno === anoAtual);
+    setaEsquerda.style.opacity = setaEsquerda.disabled ? '0.3' : '1';
+    setaEsquerda.style.cursor = setaEsquerda.disabled ? 'not-allowed' : 'pointer';
+  }
 }
 
 /**
@@ -578,4 +618,25 @@ async function salvarEdicao() {
   } catch (err) {
     alert('Erro de conexão.');
   }
+}
+
+function mudarMes(delta) {
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth();
+  const anoAtual = hoje.getFullYear();
+
+  const novoMes = calendarioMes + delta;
+  const novoAno = calendarioAno + Math.floor(novoMes / 12);
+  const mesAjustado = ((novoMes % 12) + 12) % 12;
+
+  // Bloqueia meses anteriores ao atual
+  if (novoAno < anoAtual || (novoAno === anoAtual && mesAjustado < mesAtual)) {
+    return; // não muda
+  }
+
+  calendarioMes = mesAjustado;
+  calendarioAno = novoAno;
+
+  renderizarCalendario();
+  atualizarStatusDisponibilidade();
 }
