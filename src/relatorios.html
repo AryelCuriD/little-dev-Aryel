@@ -1,59 +1,114 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Relatórios</title>
-  <link rel="stylesheet" href="global.css">
-  <link rel="stylesheet" href="relatorios.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relatórios - Little Dev</title>
+  
+  <link rel="stylesheet" href="global.css" />
+  <link rel="stylesheet" href="relatorios.css" />
+  <link rel="icon" href="imgs/favicon.png" type="image/png">
 </head>
 <body>
 
-  <div class="container-relatorios">
-    <div class="cards-grid">
-      <div class="card-relatorio">
-        <h3>Salas disponíveis</h3>
-        <p>12</p>
-      </div>
-      <div class="card-relatorio">
-        <h3>Laboratórios disponíveis</h3>
-        <p>6</p>
-      </div>
-      <div class="card-relatorio">
-        <h3>Reservas ativas</h3>
-        <p>8</p>
-      </div>
-      <div class="card-relatorio">
-        <h3>Devoluções pendentes</h3>
-        <p>3</p>
-      </div>
+  <!-- HEADER PADRÃO -->
+  <div class="container">
+    <div class="top-row">
+      <div class="div-tabela"></div>
+      <div class="div-informacao"></div>
     </div>
-
-    <div class="card-tabela-relatorio">
-      <h2>Devoluções de chave pendentes</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Sala</th>
-            <th>Professor</th>
-            <th>Data</th>
-            <th>Observações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>310</td>
-            <td>Prof. Berti</td>
-            <td>25/11/2024</td>
-            <td>Faltando apagador</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="div-paginas">
+      <div class="paginas-grid">
+        <!-- opcional -->
+      </div>
     </div>
   </div>
 
+  <!-- CONTEÚDO -->
+  <main class="container-relatorios">
+
+    <!-- TABELA: DEVOLUÇÕES DE CHAVE -->
+    <section class="tabela-reservas">
+      <div class="header-tabela">
+        <h2>Devoluções de Chave</h2>
+        <button id="btn-criar-devolucao" class="btn-criar">+ Criar Devolução</button>
+      </div>
+      <div class="tabela-container">
+        <table id="tabela-devolucoes">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Sala</th>
+              <th>Solicitante</th>
+              <th>Data</th>
+              <th>Período</th>
+              <th>Estojo</th>
+              <th>Observação</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p id="sem-dados" style="text-align:center; color:#666; display:none; margin-top:16px;">
+        Nenhuma devolução registrada.
+      </p>
+    </section>
+
+    <!-- FILTRO: GERAR RELATÓRIO (PDF) -->
+    <aside class="filtro-relatorio">
+      <h3>Gerar Relatório (PDF)</h3>
+      <div class="form-group">
+        <label for="data-inicio">Data Inicial</label>
+        <input type="date" id="data-inicio">
+      </div>
+      <div class="form-group">
+        <label for="data-fim">Data Final</label>
+        <input type="date" id="data-fim">
+      </div>
+      <button id="btn-baixar-relatorio" class="btn-baixar">
+        Baixar Relatório
+      </button>
+      <p id="erro-filtro" style="color:red; font-size:0.9rem; margin-top:8px; display:none;">
+        Selecione um intervalo válido.
+      </p>
+    </aside>
+
+  </main>
+
+  <!-- MODAL: CRIAR DEVOLUÇÃO -->
+  <div id="modal-criar-devolucao" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="fecharModalDevolucao()">×</span>
+      <h3>Criar Devolução de Chave</h3>
+
+      <div class="form-group">
+        <label>Reserva Concluída</label>
+        <select id="select-reserva" required>
+          <option value="">Selecione uma reserva</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Estojo</label>
+        <div class="radio-group">
+          <label><input type="radio" name="estojo" value="completo" checked> Completo</label>
+          <label><input type="radio" name="estojo" value="incompleto"> Incompleto</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Observação (opcional)</label>
+        <textarea id="observacao" rows="3" placeholder="Ex: faltando canetas de quadro"></textarea>
+      </div>
+
+      <button id="btn-salvar-devolucao" class="btn-salvar">Salvar Devolução</button>
+    </div>
+  </div>
+
+  <!-- FOOTER PADRÃO -->
   <footer>
     <div class="logo-area">
-      <img src="imgs/Logos - Sistema Fiep RGB_BRANCO_SENAI.png" alt="Logo">
+      <img src="imgs/Logos - Sistema Fiep RGB_BRANCO_SENAI.png" alt="Logo SENAI">
     </div>
     <nav class="paginas">
       <a href="/" data-page="home">Página Inicial</a> |
@@ -61,11 +116,11 @@
       <a href="/relatorios" data-page="relatorios">Relatórios</a>
     </nav>
     <div class="icons">
-      <img src="imgs/bell.png" alt="Notificações">
+      <img src="imgs/bell.png" alt="Notificações" onclick="abrirNotificacoes()">
       <img src="imgs/user.png" alt="Usuário" onclick="paginaUsuario()">
     </div>
   </footer>
 
-  <script src="script.js"></script>
+  <script type="module" src="relatorios.js"></script>
 </body>
 </html>

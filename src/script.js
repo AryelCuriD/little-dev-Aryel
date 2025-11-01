@@ -42,7 +42,7 @@ async function carregarFiltros() {
     const { tipos, localizacoes, faixas } = await res.json();
 
     const addOptions = (select, items, placeholder) => {
-      select.innerHTML = `<option value="todos">${placeholder}</option>`; // ← CORRIGIDO
+      select.innerHTML = `<option value="todos">${placeholder}</option>`;
       items.forEach(item => select.appendChild(new Option(item, item)));
     };
 
@@ -65,7 +65,7 @@ function filtrarSalas() {
     localizacao: document.getElementById('localizacao')?.value || 'todos',
     capacidade: document.getElementById('capacidade')?.value || 'todos'
   };
-  carregarSalas(filtros); // ← CORRIGIDO
+  carregarSalas(filtros);
 }
 
 async function carregarSalas(filtros = {}) {
@@ -83,7 +83,6 @@ async function carregarSalas(filtros = {}) {
     if (!res.ok) throw new Error();
     salas = await res.json();
 
-    // === STATUS REAL ===
     let statusMap = {};
     try {
       const statusRes = await fetch('/api/dashboard/salas-status');
@@ -212,8 +211,73 @@ function mudarMes(delta) {
   atualizarStatusDisponibilidade();
 }
 
+// ===============================================
+// HORÁRIOS POR INTERVALO
+// ===============================================
+function gerarHorarios() {
+  const horarios = [];
+  for (let h = 7; h <= 18; h++) {
+    if (h !== 12) {
+      horarios.push(`${String(h).padStart(2, '0')}:00`);
+    }
+    if (h < 18 && h !== 12) {
+      horarios.push(`${String(h).padStart(2, '0')}:30`);
+    }
+  }
+  return horarios;
+}
+
+function inicializarHorarios() {
+  const inicioSelect = document.getElementById('hora-inicio');
+  const fimSelect = document.getElementById('hora-fim');
+  if (!inicioSelect || !fimSelect) return;
+
+  const horarios = gerarHorarios();
+
+  [inicioSelect, fimSelect].forEach(select => {
+    select.innerHTML = '<option value="">Selecione</option>';
+    horarios.forEach(h => {
+      const opt = document.createElement('option');
+      opt.value = h;
+      opt.textContent = h;
+      select.appendChild(opt);
+    });
+  });
+
+  inicioSelect.value = '';
+  fimSelect.value = '';
+  fimSelect.disabled = true;
+}
+
+function atualizarHoraFim() {
+  const inicio = document.getElementById('hora-inicio').value;
+  const fimSelect = document.getElementById('hora-fim');
+  if (!inicio) {
+    fimSelect.innerHTML = '<option value="">Selecione</option>';
+    fimSelect.disabled = true;
+    return;
+  }
+
+  const horarios = gerarHorarios();
+  const idxInicio = horarios.indexOf(inicio);
+  if (idxInicio === -1) return;
+
+  fimSelect.innerHTML = '<option value="">Selecione</option>';
+  for (let i = idxInicio + 1; i < horarios.length; i++) {
+    const opt = document.createElement('option');
+    opt.value = horarios[i];
+    opt.textContent = horarios[i];
+    fimSelect.appendChild(opt);
+  }
+  fimSelect.disabled = false;
+}
+
+// ===============================================
+// MODAL DE DETALHES
+// ===============================================
 async function atualizarStatusDisponibilidade() {
-  const periodo = document.getElementById('periodo').value;
+  const inicio = document.getElementById('hora-inicio')?.value;
+  const fim = document.getElementById('hora-fim')?.value;
   const statusTexto = document.getElementById('modal-status-texto');
   const statusIcone = document.getElementById('modal-status-icone');
   const statusDiv = document.querySelector('.modal-status');
@@ -225,21 +289,25 @@ async function atualizarStatusDisponibilidade() {
     return;
   }
 
-  if (!periodo) {
-    statusTexto.textContent = 'Selecione período';
+  if (!inicio || !fim) {
+    statusTexto.textContent = 'Selecione horário completo';
     statusIcone.src = './imgs/check.png';
     statusDiv.classList.remove('indisponivel');
     return;
   }
 
+  const dataInicio = `${dataSelecionada} ${inicio}:00`;
+  const dataFim = `${dataSelecionada} ${fim}:00`;
+
   try {
-    const res = await fetch(`/api/reservas/verificar?sala_id=${salaSelecionada.id}&data=${dataSelecionada}&periodo=${periodo}`);
+    const res = await fetch(`/api/reservas/verificar-range?sala_id=${salaSelecionada.id}&inicio=${dataInicio}&fim=${dataFim}`);
     const { ocupado } = await res.json();
     statusTexto.textContent = ocupado ? 'Indisponível' : 'Disponível';
     statusIcone.src = `./imgs/${ocupado ? 'unavailable' : 'check'}.png`;
     statusDiv.classList.toggle('indisponivel', ocupado);
   } catch (err) {
     statusTexto.textContent = 'Erro';
+    console.error('Erro ao verificar horário:', err);
   }
 }
 
@@ -264,32 +332,191 @@ function abrirModal(sala) {
   setBolinha('modal-pc', sala.computador);
 
   el("solicitante").value = "";
-  el("periodo").value = "";
 
   const hoje = new Date();
   calendarioMes = hoje.getMonth();
   calendarioAno = hoje.getFullYear();
   renderizarCalendario();
+
+  // === CORREÇÃO: CHAMA ANTES DE ACESSAR OS SELECTS ===
+  inicializarHorarios();
   atualizarStatusDisponibilidade();
 
   document.getElementById("modal-detalhes").style.display = "flex";
+}
+
+// === EDITAR SALA ===
+let salaEditando = null;
+
+function abrirModalEditar() {
+  if (!salaSelecionada) {
+    alert('Nenhuma sala selecionada para edição.');
+    return;
+  }
+
+  salaEditando = salaSelecionada;
+
+  const el = (id) => {
+    const elem = document.getElementById(id);
+    if (!elem) {
+      console.warn(`Elemento #${id} não encontrado`);
+      return null;
+    }
+    return elem;
+  };
+
+  const numero = el('novo-numero');
+  const capacidade = el('novo-capacidade');
+  const localizacao = el('novo-localizacao');
+  const tipo = el('novo-tipo');
+
+  if (numero) numero.value = salaEditando.numero_sala;
+  if (capacidade) capacidade.value = salaEditando.capacidade;
+  if (localizacao) localizacao.value = salaEditando.localizacao;
+  if (tipo) tipo.value = salaEditando.tipo_sala;
+
+  const setBolinha = (id, valor) => {
+    const b = el(id);
+    if (b) b.classList.toggle('preenchida', valor);
+  };
+  setBolinha('check-projetor', salaEditando.projetor);
+  setBolinha('check-ar', salaEditando.ar_condicionado);
+  setBolinha('check-tv', salaEditando.televisao);
+  setBolinha('check-pc', salaEditando.computador);
+
+  const preview = el('preview-imagem');
+  if (preview) {
+    preview.src = `/api/salas/${salaEditando.id}/imagem`;
+  }
+
+  const titulo = el('modal-titulo-sala');
+  if (titulo) titulo.textContent = `Editar Sala ${salaEditando.numero_sala}`;
+
+  const btn = el('btn-acao-sala');
+  if (btn) {
+    btn.textContent = 'Salvar Alterações';
+    btn.onclick = salvarEdicao;
+  }
+
+  const modal = document.getElementById('modal-adicionar-sala');
+  if (modal) {
+    modal.style.display = 'flex';
+    carregarOpcoesFiltros();
+  }
+}
+
+async function salvarEdicao() {
+  const numero = document.getElementById('novo-numero').value.trim();
+  const capacidade = document.getElementById('novo-capacidade').value;
+  const localizacao = document.getElementById('novo-localizacao').value;
+  const tipo = document.getElementById('novo-tipo').value;
+  const file = document.getElementById('upload-imagem').files[0];
+
+  const projetor = document.getElementById('check-projetor').classList.contains('preenchida');
+  const ar = document.getElementById('check-ar').classList.contains('preenchida');
+  const tv = document.getElementById('check-tv').classList.contains('preenchida');
+  const pc = document.getElementById('check-pc').classList.contains('preenchida');
+
+  if (!numero || !capacidade || !localizacao || !tipo) {
+    alert('Preencha todos os campos obrigatórios!');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('numero_sala', numero);
+  formData.append('tipo_sala', tipo);
+  formData.append('localizacao', localizacao);
+  formData.append('capacidade', capacidade);
+  formData.append('projetor', projetor);
+  formData.append('ar_condicionado', ar);
+  formData.append('televisao', tv);
+  formData.append('computador', pc);
+  if (file) formData.append('imagem', file);
+
+  try {
+    const res = await fetch(`/api/salas/${salaEditando.id}`, {
+      method: 'PUT',
+      body: formData
+    });
+
+    if (res.ok) {
+      alert('Sala atualizada com sucesso!');
+      fecharModalAdicionar();
+      fecharModal();
+      carregarSalas();
+      carregarEstatisticasDashboard();
+    } else {
+      const erro = await res.text();
+      alert('Erro ao salvar: ' + erro);
+    }
+  } catch (err) {
+    console.error('Erro de rede:', err);
+    alert('Erro de conexão.');
+  }
+}
+
+async function carregarOpcoesFiltros() {
+  try {
+    const res = await fetch('/api/salas/opcoes');
+    if (!res.ok) throw new Error('Falha ao carregar opções');
+
+    const { localizacoes, tipos } = await res.json();
+
+    const selectLocalizacao = document.getElementById('novo-localizacao');
+    const selectTipo = document.getElementById('novo-tipo');
+
+    if (selectLocalizacao) {
+      selectLocalizacao.innerHTML = '<option value="">Escolha uma opção</option>';
+      localizacoes.forEach(loc => {
+        const opt = document.createElement('option');
+        opt.value = loc;
+        opt.textContent = loc;
+        selectLocalizacao.appendChild(opt);
+      });
+    }
+
+    if (selectTipo) {
+      selectTipo.innerHTML = '<option value="">Escolha uma opção</option>';
+      tipos.forEach(tipo => {
+        const opt = document.createElement('option');
+        opt.value = tipo;
+        opt.textContent = tipo;
+        selectTipo.appendChild(opt);
+      });
+    }
+  } catch (err) {
+    console.error('Erro ao carregar opções:', err);
+    alert('Erro ao carregar opções de filtro.');
+  }
 }
 
 function fecharModal() {
   document.getElementById("modal-detalhes").style.display = "none";
 }
 
+// ===============================================
+// FAZER RESERVA COM HORÁRIO ESPECÍFICO
+// ===============================================
 async function fazerReserva() {
   const solicitante = document.getElementById('solicitante').value.trim();
-  const periodo = document.getElementById('periodo').value;
+  const inicio = document.getElementById('hora-inicio').value;
+  const fim = document.getElementById('hora-fim').value;
 
-  if (!salaSelecionada || !dataSelecionada || !solicitante || !periodo) {
+  if (!salaSelecionada || !dataSelecionada || !solicitante || !inicio || !fim) {
     alert('Preencha todos os campos!');
     return;
   }
 
+  if (inicio >= fim) {
+    alert('Hora de término deve ser após o início!');
+    return;
+  }
+
+  const dataInicio = `${dataSelecionada} ${inicio}:00`;
+  const dataFim = `${dataSelecionada} ${fim}:00`;
+
   try {
-    const verificar = await fetch(`/api/reservas/verificar?sala_id=${salaSelecionada.id}&data=${dataSelecionada}&periodo=${periodo}`);
+    const verificar = await fetch(`/api/reservas/verificar-range?sala_id=${salaSelecionada.id}&inicio=${dataInicio}&fim=${dataFim}`);
     const { ocupado } = await verificar.json();
     if (ocupado) {
       alert('Este horário já está reservado!');
@@ -300,10 +527,9 @@ async function fazerReserva() {
     return;
   }
 
-  const periodoTexto = periodo === 'manha' ? 'Manhã (08:00 - 12:00)' :
-                       periodo === 'tarde' ? 'Tarde (14:00 - 18:00)' : 'Noite (19:00 - 22:00)';
-
-  if (!confirm(`Reservar Sala ${salaSelecionada.numero_sala}\nData: ${dataSelecionada}\nPeríodo: ${periodoTexto}\nSolicitante: ${solicitante}`)) return;
+  if (!confirm(`Reservar Sala ${salaSelecionada.numero_sala}\nData: ${dataSelecionada}\nHorário: ${inicio} às ${fim}\nSolicitante: ${solicitante}`)) {
+    return;
+  }
 
   try {
     const res = await fetch('/api/reservas', {
@@ -311,8 +537,8 @@ async function fazerReserva() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sala_id: salaSelecionada.id,
-        data_inicio: `${dataSelecionada} ${periodo === 'manha' ? '08:00' : periodo === 'tarde' ? '14:00' : '19:00'}:00`,
-        data_fim: `${dataSelecionada} ${periodo === 'manha' ? '12:00' : periodo === 'tarde' ? '18:00' : '22:00'}:00`,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
         solicitante
       })
     });
@@ -362,5 +588,194 @@ async function carregarEstatisticasDashboard() {
     update('devolucoes-pendentes', data.devolucoesPendentes);
   } catch (err) {
     console.error('Erro no dashboard:', err);
+  }
+}
+
+function fecharModalAdicionar() {
+  const modal = document.getElementById('modal-adicionar-sala');
+  if (modal) modal.style.display = 'none';
+
+  document.getElementById('novo-numero').value = '';
+  document.getElementById('novo-capacidade').value = '';
+  document.getElementById('novo-localizacao').value = '';
+  document.getElementById('novo-tipo').value = '';
+  document.getElementById('upload-imagem').value = '';
+  document.getElementById('preview-imagem').src = './imgs/plus-photo.png';
+
+  ['check-projetor', 'check-ar', 'check-tv', 'check-pc'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.classList.remove('preenchida');
+  });
+
+  const btn = document.getElementById('btn-acao-sala');
+  if (btn) {
+    btn.textContent = 'Adicionar Sala';
+    btn.onclick = adicionarSala;
+  }
+}
+
+function toggleBolinha(element) {
+  element.classList.toggle('preenchida');
+}
+
+function previewImagem(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById('preview-imagem');
+  if (file && preview) {
+    const reader = new FileReader();
+    reader.onload = (e) => preview.src = e.target.result;
+    reader.readAsDataURL(file);
+  }
+}
+
+function abrirModalAdicionar() {
+  document.getElementById('novo-numero').value = '';
+  document.getElementById('novo-capacidade').value = '';
+  document.getElementById('novo-localizacao').value = '';
+  document.getElementById('novo-tipo').value = '';
+  document.getElementById('upload-imagem').value = '';
+  document.getElementById('preview-imagem').src = './imgs/plus-photo.png';
+
+  ['check-projetor', 'check-ar', 'check-tv', 'check-pc'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.classList.remove('preenchida');
+  });
+
+  const titulo = document.getElementById('modal-titulo-sala');
+  if (titulo) titulo.textContent = 'Adicionar Nova Sala';
+
+  const btn = document.getElementById('btn-acao-sala');
+  if (btn) {
+    btn.textContent = 'Adicionar Sala';
+    btn.onclick = adicionarSala;
+  }
+
+  carregarOpcoesFiltros().then(() => {
+    const modal = document.getElementById('modal-adicionar-sala');
+    if (modal) modal.style.display = 'flex';
+  }).catch(err => {
+    console.error('Erro ao abrir modal:', err);
+    alert('Erro ao carregar opções.');
+  });
+}
+
+let enviandoSala = false;
+
+async function adicionarSala() {
+  if (enviandoSala) return;
+
+  const btn = document.getElementById('btn-acao-sala');
+  if (!btn) {
+    console.error('Botão btn-acao-sala não encontrado!');
+    alert('Erro: botão não encontrado.');
+    return;
+  }
+
+  const textoOriginal = btn.textContent.trim();
+  btn.textContent = 'Enviando...';
+  btn.disabled = true;
+  enviandoSala = true;
+
+  const numero = document.getElementById('novo-numero')?.value.trim();
+  const capacidade = document.getElementById('novo-capacidade')?.value;
+  const localizacao = document.getElementById('novo-localizacao')?.value;
+  const tipo = document.getElementById('novo-tipo')?.value;
+  const file = document.getElementById('upload-imagem')?.files[0];
+
+  const projetor = document.getElementById('check-projetor')?.classList.contains('preenchida');
+  const ar = document.getElementById('check-ar')?.classList.contains('preenchida');
+  const tv = document.getElementById('check-tv')?.classList.contains('preenchida');
+  const pc = document.getElementById('check-pc')?.classList.contains('preenchida');
+
+  if (!numero || !capacidade || !localizacao || !tipo) {
+    alert('Preencha todos os campos obrigatórios!');
+    btn.textContent = textoOriginal;
+    btn.disabled = false;
+    enviandoSala = false;
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('numero_sala', numero);
+  formData.append('tipo_sala', tipo);
+  formData.append('localizacao', localizacao);
+  formData.append('capacidade', capacidade);
+  formData.append('projetor', projetor);
+  formData.append('ar_condicionado', ar);
+  formData.append('televisao', tv);
+  formData.append('computador', pc);
+  if (file) formData.append('imagem', file);
+
+  try {
+    const res = await fetch('/api/salas', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (res.ok) {
+      alert('Sala adicionada com sucesso!');
+      fecharModalAdicionar();
+      carregarSalas();
+      carregarEstatisticasDashboard();
+    } else {
+      const erro = await res.text();
+      alert('Erro: ' + erro);
+    }
+  } catch (err) {
+    console.error('Erro:', err);
+    alert('Erro de conexão.');
+  } finally {
+    btn.textContent = textoOriginal;
+    btn.disabled = false;
+    enviandoSala = false;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  carregarReservasConcluidas();
+
+  document.getElementById('btn-baixar-relatorio').onclick = () => {
+    const inicio = document.getElementById('data-inicio').value;
+    const fim = document.getElementById('data-fim').value;
+    const erro = document.getElementById('erro-filtro');
+
+    if (!inicio || !fim || inicio > fim) {
+      erro.style.display = 'block';
+      return;
+    }
+    erro.style.display = 'none';
+
+    // Futuro: chamar /api/relatorios/devolucao?inicio=...&fim=...
+    window.open(`/api/relatorios/devolucao?inicio=${inicio}&fim=${fim}`, '_blank');
+  };
+});
+
+async function carregarReservasConcluidas() {
+  try {
+    const res = await fetch('/api/reservas/concluidas');
+    const reservas = await res.json();
+
+    const tbody = document.querySelector('#tabela-reservas tbody');
+    const semDados = document.getElementById('sem-dados');
+
+    if (reservas.length === 0) {
+      semDados.style.display = 'block';
+      tbody.innerHTML = '';
+      return;
+    }
+
+    semDados.style.display = 'none';
+    tbody.innerHTML = reservas.map(r => `
+      <tr>
+        <td>${r.id}</td>
+        <td>Sala ${r.numero_sala}</td>
+        <td>${r.solicitante}</td>
+        <td>${new Date(r.data_inicio).toLocaleDateString('pt-BR')}</td>
+        <td>${r.horario}</td>
+        <td><span class="status-concluida">Concluída</span></td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error('Erro ao carregar reservas:', err);
   }
 }

@@ -32,7 +32,7 @@
   background: white;
   border-radius: 10px;
   padding: 20px;
-  padding-top: 40px; /* espaço para o status */
+  padding-top: 40px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   display: flex;
   gap: 16px;
@@ -267,6 +267,8 @@
   color: #666;
 }
 
+.modal-close:hover { color: #000; }
+
 .modal-body {
   display: flex;
   gap: 30px;
@@ -274,12 +276,41 @@
   flex-wrap: wrap;
 }
 
-.modal-imagem img {
+.modal-imagem-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
-  max-width: 350px;
-  height: 220px;
+  max-width: 320px;
+  margin: 0 auto 20px auto;
+  gap: 12px;
+}
+
+.modal-imagem-container img {
+  width: 100%;
+  max-height: 260px;
   object-fit: cover;
   border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.btn-editar-sala {
+  background: #111d4a;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.btn-editar-sala:hover {
+  background: #0e183a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 .modal-info {
@@ -306,116 +337,14 @@
   height: 24px;
 }
 
-.modal-reserva {
-  display: flex;
-  gap: 30px;
-  margin-top: 25px;
-  flex-wrap: wrap;
-}
-
-.calendario-container {
-  flex: 1;
-  min-width: 300px;
-}
-
-#calendario {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
-  background: #f9f9f9;
-}
-
-.calendario-botoes {
-  margin-top: 10px;
-  display: flex;
-  gap: 10px;
-}
-
-.form-reserva {
-  flex: 1;
-  min-width: 280px;
-}
-
-.form-reserva label {
-  display: block;
-  margin: 12px 0 5px;
-  font-weight: 600;
-}
-
-.form-reserva input,
-.form-reserva select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  margin-bottom: 15px;
-}
-
-.btn-reservar {
-  background: #28a745;
-  color: white;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  width: 100%;
-}
-
-.btn-reservar:hover {
-  background: #218838;
-}
-
-.btn-primario {
-  background: #007bff;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.modal-detalhes-lista {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0 20px;
-}
-
-.modal-detalhes-lista li {
-  font-size: 15px;
-  margin: 6px 0;
-  display: flex;
-  justify-content: space-between;
-  max-width: 350px;
-}
-
-.modal-detalhes-info p {
-  margin: 6px 0;
-  color: #111d4a;
-}
-
 .modal-status.indisponivel span {
   color: #c62828;
 }
+
 .modal-status.indisponivel img {
   filter: hue-rotate(300deg);
 }
 
-/* === ESTILO DAS BOLINHAS === */
-.status-bolinha {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid #111d4a;
-  border-radius: 50%;
-  margin-left: 8px;
-  vertical-align: middle;
-}
-
-.status-bolinha.preenchida {
-  background-color: #111d4a;
-}
-
-/* === COR DOS TEXTOS === */
 .modal-detalhes-info p,
 .modal-detalhes-lista li,
 .detalhe-label {
@@ -430,206 +359,44 @@
   min-width: 180px;
 }
 
-.modal-imagem-container {
-  position: relative;
+.modal-detalhes-lista {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 20px;
+}
+
+.modal-detalhes-lista li {
+  display: flex;
+  justify-content: space-between;
+  max-width: 350px;
+}
+
+.status-bolinha {
   display: inline-block;
-}
-
-.btn-editar-sala {
-  top:30px;
-  background: #111d4a;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  transition: 0.2s;
-}
-
-.btn-editar-sala:hover {
-  background: #0e183a;
-  transform: translateY(-1px);
-}
-
-/* === IMAGEM + BOTÃO NO MODAL DE DETALHES === */
-.modal-imagem-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 320px;
-  margin: 0 auto 20px auto;
-  gap: 12px;
-}
-
-.modal-imagem-container img {
-  width: 100%;
-  max-height: 260px;
-  object-fit: cover;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  display: block;
-}
-
-.btn-editar-sala {
-  background: #111d4a;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-.btn-editar-sala:hover {
-  background: #0e183a;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-
-/* === MODAL OVERLAY (ADICIONAR/EDITAR) === */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  padding: 20px;
-}
-
-.modal-adicionar-content {
-  background: white;
-  border-radius: 16px;
-  max-width: 500px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  padding: 30px;
-}
-
-.modal-close {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-  color: #666;
-  z-index: 10;
-}
-
-.modal-adicionar-body {
-  display: flex;
-  gap: 30px;
-  flex-wrap: wrap;
-}
-
-.imagem-upload {
-  flex: 1;
-  min-width: 150px;
-  text-align: center;
-}
-
-.imagem-upload img {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 2px dashed #ccc;
-  cursor: pointer;
-}
-
-.upload-label {
-  display: block;
-  cursor: pointer;
-}
-
-.form-adicionar {
-  flex: 2;
-  min-width: 280px;
-}
-
-.form-adicionar h3 {
-  margin-top: 0;
-  color: #192a6b;
-  font-size: 1.4rem;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-  color: #192a6b;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 10px;
-  border: 1.5px solid #ccc;
-  border-radius: 8px;
-  font-size: 0.95rem;
-}
-
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-  font-size: 0.95rem;
-}
-
-.bolinha-checkbox {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border: 2px solid #111d4a;
   border-radius: 50%;
-  cursor: pointer;
-  transition: 0.2s;
+  margin-left: 8px;
+  vertical-align: middle;
 }
 
-.bolinha-checkbox.preenchida {
+.status-bolinha.preenchida {
   background-color: #111d4a;
 }
 
-.form-row {
+.modal-reserva {
   display: flex;
-  gap: 16px;
+  gap: 30px;
+  margin-top: 25px;
   flex-wrap: wrap;
 }
 
-.btn-adicionar-sala {
-  background: #111d4a;
-  color: white;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 20px;
-  transition: 0.2s;
+.calendario-container {
+  flex: 1;
+  min-width: 300px;
 }
 
-.btn-adicionar-sala:hover {
-  background: #0e183a;
-}
-
-/* === CALENDÁRIO DINÂMICO === */
 #calendario {
   background: #f9f9f9;
   border: 1px solid #ddd;
@@ -697,133 +464,6 @@
 .calendario-dia:not(.vazio):hover {
   background: #e3f2fd !important;
   font-weight: 600;
-}
-
-.calendario-dia.hoje {
-  background: #bbdefb;
-  color: #0d47a1;
-  font-weight: 700;
-  border: 2px solid #1976d2;
-}
-
-.calendario-dia.selecionado {
-  background: #111d4a !important;
-  color: white;
-  font-weight: 700;
-}
-
-.calendario-dia.vazio {
-  background: transparent;
-  cursor: default;
-}
-
-.calendario-dia.desabilitado {
-  color: #aaa !important;
-  background: #f5f5f5 !important;
-  cursor: not-allowed !important;
-  text-decoration: line-through;
-  pointer-events: none;
-}
-
-#calendario .calendario-seta:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-/* === CALENDÁRIO DINÂMICO === */
-#calendario {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 16px;
-  font-family: inherit;
-  user-select: none;
-}
-
-.calendario-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  font-weight: 600;
-  color: #192a6b;
-}
-
-.calendario-seta {
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  cursor: pointer;
-  padding: 4px 8px;
-  color: #111d4a;
-  transition: 0.2s;
-}
-
-.calendario-seta:hover {
-  background: #e3e8f1;
-  border-radius: 6px;
-}
-
-.calendario-titulo {
-  font-size: 1.1rem;
-  font-weight: 700;
-  text-transform: capitalize;
-}
-
-.calendario-dias-semana {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  text-align: center;
-  font-weight: 600;
-  color: #111d4a;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-}
-
-.calendario-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-}
-
-.calendario-dia {
-  text-align: center;
-  padding: 10px 4px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: 0.2s;
-}
-
-.calendario-dia:not(.vazio):hover {
-  background: #e3f2fd !important;
-  font-weight: 600;
-}
-
-.calendario-dia.hoje {
-  background: #bbdefb;
-  color: #0d47a1;
-  font-weight: 700;
-  border: 2px solid #1976d2;
-}
-
-.calendario-dia.selecionado {
-  background: #111d4a !important;
-  color: white;
-  font-weight: 700;
-}
-
-.calendario-dia.vazio {
-  background: transparent;
-  cursor: default;
-}
-
-.calendario-dia.desabilitado {
-  color: #aaa !important;
-  background: #f5f5f5 !important;
-  cursor: not-allowed !important;
-  text-decoration: line-through;
-  pointer-events: none;
 }
 
 .calendario-dia.hoje {
@@ -839,7 +479,351 @@
   font-weight: 700;
 }
 
+.calendario-dia.vazio {
+  background: transparent;
+  cursor: default;
+}
+
+.calendario-dia.desabilitado {
+  color: #aaa !important;
+  background: #f5f5f5 !important;
+  cursor: not-allowed !important;
+  text-decoration: line-through;
+  pointer-events: none;
+}
+
 #calendario .calendario-seta:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+.calendario-botoes {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-primario {
+  background: #007bff;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.form-reserva {
+  flex: 1;
+  min-width: 280px;
+}
+
+.form-reserva label {
+  display: block;
+  margin: 12px 0 5px;
+  font-weight: 600;
+  color: #192a6b;
+}
+
+.form-reserva input,
+.form-reserva select {
+  width: 100%;
+  padding: 10px;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 1rem;
+}
+
+.btn-reservar {
+  background: #28a745;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.btn-reservar:hover {
+  background: #218838;
+}
+
+/* === HORÁRIOS POR INTERVALO === */
+.form-reserva-horario {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.form-reserva-horario label {
+  font-weight: 600;
+  color: #192a6b;
+  margin-bottom: 4px;
+}
+
+.form-reserva-horario select {
+  padding: 10px;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+  transition: border 0.2s;
+}
+
+.form-reserva-horario select:focus {
+  outline: none;
+  border-color: #111d4a;
+  box-shadow: 0 0 0 2px rgba(17, 29, 74, 0.1);
+}
+
+.form-reserva-horario select:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* === MODAL ADICIONAR / EDITAR SALA === */
+.modal-adicionar {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.modal-adicionar-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+.modal-adicionar-body {
+  padding: 30px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.imagem-upload {
+  flex: 1;
+  min-width: 150px;
+  text-align: center;
+}
+
+#preview-imagem {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px dashed #ccc;
+}
+
+.upload-label {
+  cursor: pointer;
+  display: block;
+}
+
+.form-adicionar {
+  flex: 2;
+  min-width: 300px;
+}
+
+.form-adicionar h3 {
+  margin-top: 0;
+  color: #192a6b;
+  font-size: 1.4rem;
+}
+
+.form-group,
+.checkbox-group {
+  margin-bottom: 16px;
+}
+
+.form-group label,
+.checkbox-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #192a6b;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bolinha-checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bolinha-checkbox.preenchida {
+  background: #111d4a;
+  border-color: #111d4a;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.form-row .form-group {
+  flex: 1;
+  min-width: 140px;
+}
+
+.btn-adicionar-sala {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  background: #111d4a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-adicionar-sala:hover {
+  background: #0d1633;
+}
+
+.btn-adicionar-sala:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+/* === ALINHAMENTO PERFEITO NOS CAMPOS === */
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.form-row .form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Labels com largura fixa para alinhar inputs */
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #192a6b;
+  min-width: 120px; /* ← ALINHA TODOS */
+  font-size: 0.95rem;
+}
+
+/* Inputs e selects com mesmo padding e altura */
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: #fff;
+  transition: border 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #111d4a;
+  box-shadow: 0 0 0 2px rgba(17, 29, 74, 0.1);
+}
+
+/* Checkbox group alinhado */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.checkbox-group label {
+  margin: 0;
+  min-width: auto;
+  font-weight: normal;
+  color: #333;
+  cursor: pointer;
+}
+
+/* === OCULTA O TEXTO PADRÃO DO INPUT FILE === */
+.upload-input-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.upload-input-container input[type="file"] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.upload-input-container .upload-btn {
+  display: inline-block;
+  background: #111d4a;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  width: 100%;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+.upload-input-container .upload-btn:hover {
+  background: #0e183a;
+}
+
+/* Esconde o texto padrão do navegador */
+.upload-input-container input[type="file"]::-webkit-file-upload-button {
+  visibility: hidden;
+}
+.upload-input-container input[type="file"]::file-selector-button {
+  visibility: hidden;
+}
+.upload-input-container input[type="file"] {
+  color: transparent;
 }

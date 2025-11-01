@@ -5,7 +5,7 @@
  * 1. Configuração
  * 2. Rotas de Páginas (HTML)
  * 3. Rotas API - Salas
- * 4. Rotas API - Reservas
+ * 4. Rotas API - Reservas (PERÍODO + INTERVALO)
  * 5. Rotas API - Devolução
  * 6. Rotas API - Dashboard e Filtros
  * 7. Inicialização do servidor
@@ -80,31 +80,20 @@ app.get('/api/salas', async (req, res) => {
 // === STATUS REAL DAS SALAS (AGORA) ===
 app.get('/api/dashboard/salas-status', async (req, res) => {
   try {
-    // === HORÁRIO CORRETO (BRASIL) ===
     let agora;
     if (moment) {
       agora = moment.tz('America/Sao_Paulo').format('YYYY-MM-DD HH:mm:ss');
     } else {
       agora = new Date().toISOString().slice(0, 19).replace('T', ' ');
     }
-    console.log('Horário verificado:', agora);
 
-    // === RESERVAS ATIVAS AGORA ===
-    let reservasAtivas = [];
-    try {
-      reservasAtivas = await query(`
-        SELECT DISTINCT r.sala_id
-        FROM reservas r
-        WHERE r.data_inicio <= ? AND r.data_fim >= ?
-      `, [agora, agora]);
-    } catch (err) {
-      console.error('Erro na query de reservas:', err);
-    }
+    const reservasAtivas = await query(`
+      SELECT DISTINCT r.sala_id
+      FROM reservas r
+      WHERE r.data_inicio <= ? AND r.data_fim >= ?
+    `, [agora, agora]);
 
     const ocupadas = new Set(reservasAtivas.map(r => r.sala_id));
-    console.log('Salas ocupadas:', Array.from(ocupadas));
-
-    // === TODAS AS SALAS ===
     const todasSalas = await query('SELECT id FROM salas');
     const status = todasSalas.map(sala => ({
       id: sala.id,
@@ -115,6 +104,22 @@ app.get('/api/dashboard/salas-status', async (req, res) => {
   } catch (err) {
     console.error('Erro crítico no status:', err);
     res.status(500).json([]);
+  }
+});
+
+// === OPÇÕES DE FILTRO (LOCALIZAÇÃO E TIPO) ===
+app.get('/api/salas/opcoes', async (req, res) => {
+  try {
+    const locResult = await query('SELECT DISTINCT localizacao FROM salas WHERE localizacao IS NOT NULL ORDER BY localizacao');
+    const tipoResult = await query('SELECT DISTINCT tipo_sala FROM salas WHERE tipo_sala IS NOT NULL ORDER BY tipo_sala');
+
+    const localizacoes = locResult.map(r => r.localizacao).filter(Boolean);
+    const tipos = tipoResult.map(r => r.tipo_sala).filter(Boolean);
+
+    res.json({ localizacoes, tipos });
+  } catch (err) {
+    console.error('Erro ao buscar opções:', err);
+    res.status(500).json({ error: 'Erro interno' });
   }
 });
 
@@ -218,65 +223,178 @@ app.get('/api/salas/:id/imagem', async (req, res) => {
 // ===============================================
 // 3. ROTAS API - RESERVAS
 // ===============================================
-app.get('/api/reservas/verificar', async (req, res) => {
-  const { sala_id, data, periodo } = req.query;
-  if (!sala_id || !data || !periodo) return res.status(400).json({ error: 'Parâmetros insuficientes' });
 
-  const horarios = {
-    manha: { inicio: '08:00:00', fim: '12:00:00' },
-    tarde: { inicio: '14:00:00', fim: '18:00:00' },
-    noite: { inicio: '19:00:00', fim: '22:00:00' }
-  };
-
-  const { inicio, fim } = horarios[periodo] || {};
-  if (!inicio || !fim) return res.status(400).json({ error: 'Período inválido' });
-
-  const dataInicio = `${data} ${inicio}`;
-  const dataFim = `${data} ${fim}`;
+// === VERIFICAR DISPONIBILIDADE POR INTERVALO ===
+app.get('/api/reservas/verificar-range', async (req, res) => {
+  const { sala_id, inicio, fim } = req.query;
+  if (!sala_id || !inicio || !fim) {
+    return res.status(400).json({ error: 'Parâmetros obrigatórios: sala_id, inicio, fim' });
+  }
 
   try {
     const [row] = await query(`
       SELECT 1 FROM reservas
       WHERE sala_id = ? AND (
         (data_inicio < ? AND data_fim > ?) OR
-        (data_inicio < ? AND data_fim > ?)
+        (data_inicio < ? AND data_fim > ?) OR
+        (data_inicio >= ? AND data_fim <= ?) OR
+        (data_inicio <= ? AND data_fim >= ?)
       )
-    `, [sala_id, dataFim, dataInicio, dataFim, dataInicio]);
+    `, [sala_id, fim, inicio, fim, inicio, inicio, fim, inicio, fim]);
 
     res.json({ ocupado: !!row });
   } catch (err) {
-    console.error('Erro ao verificar:', err);
-    res.status(500).json({ error: 'Erro' });
+    console.error('Erro ao verificar intervalo:', err);
+    res.status(500).json({ error: 'Erro interno' });
   }
 });
 
+// === CRIAR RESERVA ===
 app.post('/api/reservas', async (req, res) => {
   const { solicitante, data_inicio, data_fim, sala_id } = req.body;
   if (!solicitante || !data_inicio || !data_fim || !sala_id) {
-    return res.status(400).json({ error: 'Campos obrigatórios' });
+    return res.status(400).json({ error: 'Campos obrigatórios faltando' });
   }
 
   try {
+    const [conflito] = await query(`
+      SELECT 1 FROM reservas
+      WHERE sala_id = ? AND (
+        (data_inicio < ? AND data_fim > ?) OR
+        (data_inicio < ? AND data_fim > ?) OR
+        (data_inicio >= ? AND data_fim <= ?)
+      )
+    `, [sala_id, data_fim, data_inicio, data_fim, data_inicio, data_inicio, data_fim]);
+
+    if (conflito) {
+      return res.status(409).json({ error: 'Conflito de horário: sala já reservada neste intervalo' });
+    }
+
     const result = await query(
       `INSERT INTO reservas (solicitante, data_inicio, data_fim, sala_id) VALUES (?, ?, ?, ?)`,
       [solicitante, data_inicio, data_fim, sala_id]
     );
-    res.status(201).json({ id: result.insertId, message: 'Reserva criada' });
+
+    res.status(201).json({ id: result.insertId, message: 'Reserva criada com sucesso' });
   } catch (err) {
     console.error('Erro ao criar reserva:', err);
-    res.status(500).json({ error: 'Erro ao salvar' });
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 
 // ===============================================
-// 4. DASHBOARD
+// 4. ROTAS API - DEVOLUÇÃO (USANDO devolucao_estojo)
+// ===============================================
+
+// === LISTAR DEVOLUÇÕES ===
+app.get('/api/devolucoes', async (req, res) => {
+  try {
+    const devolucoes = await query(`
+      SELECT 
+        de.id,
+        de.reserva_id,
+        de.estojo_completo,
+        de.observacao,
+        r.solicitante,
+        r.data_inicio,
+        r.data_fim,
+        s.numero_sala,
+        DATE_FORMAT(r.data_inicio, '%Y-%m-%d') AS data_devolucao,
+        CONCAT(
+          DATE_FORMAT(r.data_inicio, '%H:%i'), ' - ',
+          DATE_FORMAT(r.data_fim, '%H:%i')
+        ) AS horario
+      FROM devolucao_estojo de
+      JOIN reservas r ON de.reserva_id = r.id
+      JOIN salas s ON r.sala_id = s.id
+      ORDER BY de.id DESC
+    `);
+
+    // Converte 'TRUE'/'FALSE' para 'completo'/'incompleto'
+    const formatadas = devolucoes.map(d => ({
+      ...d,
+      estojo: d.estojo_completo === 'TRUE' ? 'completo' : 'incompleto'
+    }));
+
+    res.json(formatadas);
+  } catch (err) {
+    console.error('Erro ao listar devoluções:', err);
+    res.status(500).json([]);
+  }
+});
+
+// === CRIAR DEVOLUÇÃO ===
+app.post('/api/devolucoes', async (req, res) => {
+  const { reserva_id, estojo, observacao } = req.body;
+
+  if (!reserva_id || !estojo) {
+    return res.status(400).json({ error: 'Campos obrigatórios faltando' });
+  }
+
+  const estojo_completo = estojo === 'completo' ? 'TRUE' : 'FALSE';
+
+  try {
+    const [existente] = await query('SELECT 1 FROM devolucao_estojo WHERE reserva_id = ?', [reserva_id]);
+    if (existente) {
+      return res.status(409).json({ error: 'Devolução já registrada' });
+    }
+
+    const result = await query(
+      `INSERT INTO devolucao_estojo (reserva_id, estojo_completo, observacao) VALUES (?, ?, ?)`,
+      [reserva_id, estojo_completo, observacao || null]
+    );
+
+    res.status(201).json({ id: result.insertId });
+  } catch (err) {
+    console.error('Erro ao criar devolução:', err);
+    res.status(500).json({ error: 'Erro interno' });
+  }
+});
+
+// === RESERVAS PENDENTES DE DEVOLUÇÃO ===
+app.get('/api/reservas/pendentes-devolucao', async (req, res) => {
+  try {
+    const pendentes = await query(`
+      SELECT 
+        r.id,
+        r.sala_id,
+        s.numero_sala,
+        r.solicitante,
+        r.data_inicio,
+        r.data_fim,
+        DATE_FORMAT(r.data_inicio, '%H:%i') AS hora_inicio,
+        DATE_FORMAT(r.data_fim, '%H:%i') AS hora_fim
+      FROM reservas r
+      JOIN salas s ON r.sala_id = s.id
+      LEFT JOIN devolucao_estojo de ON r.id = de.reserva_id
+      WHERE r.data_fim < NOW()
+        AND de.id IS NULL
+      ORDER BY r.data_inicio DESC
+    `);
+
+    const formatadas = pendentes.map(p => ({
+      id: p.id,
+      numero_sala: p.numero_sala,
+      solicitante: p.solicitante,
+      data_inicio: p.data_inicio,
+      horario: `${p.hora_inicio} - ${p.hora_fim}`
+    }));
+
+    res.json(formatadas);
+  } catch (err) {
+    console.error('Erro ao buscar reservas pendentes:', err);
+    res.status(500).json([]);
+  }
+});
+// ===============================================
+// 5. DASHBOARD
 // ===============================================
 app.get('/api/dashboard', async (req, res) => {
   try {
     const [salas] = await query("SELECT COUNT(*) AS total FROM salas WHERE tipo_sala LIKE 'Sala%'");
     const [labs] = await query("SELECT COUNT(*) AS total FROM salas WHERE tipo_sala LIKE 'Laboratório%'");
     const [ativas] = await query("SELECT COUNT(*) AS total FROM reservas r WHERE r.data_inicio <= NOW() AND r.data_fim >= NOW()");
-    const [pendentes] = await query("SELECT COUNT(*) AS total FROM devolucao_estojo WHERE estojo_completo = 'FALSE'");
+    const [pendentes] = await query("SELECT COUNT(*) AS total FROM devolucoes WHERE estojo = 'incompleto'");
 
     res.json({
       salasDisponiveis: salas.total,
@@ -291,7 +409,7 @@ app.get('/api/dashboard', async (req, res) => {
 });
 
 // ===============================================
-// 5. INICIALIZAÇÃO
+// 6. INICIALIZAÇÃO
 // ===============================================
 const PORT = 8080;
 app.listen(PORT, () => {
