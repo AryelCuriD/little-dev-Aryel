@@ -286,10 +286,12 @@ app.post('/api/reservas', async (req, res) => {
 // 4. ROTAS API - DEVOLUÇÃO (USANDO devolucao_estojo)
 // ===============================================
 
-// === LISTAR DEVOLUÇÕES ===
+// === LISTAR DEVOLUÇÕES (COM FILTRO POR SALA, DATA, ETC) ===
 app.get('/api/devolucoes', async (req, res) => {
+  const { inicio, fim, sala_id } = req.query;
+
   try {
-    const devolucoes = await query(`
+    let sql = `
       SELECT 
         de.id,
         de.reserva_id,
@@ -299,18 +301,38 @@ app.get('/api/devolucoes', async (req, res) => {
         r.data_inicio,
         r.data_fim,
         s.numero_sala,
-        DATE_FORMAT(r.data_inicio, '%Y-%m-%d') AS data_devolucao,
+        DATE(r.data_inicio) AS data_devolucao,
         CONCAT(
-          DATE_FORMAT(r.data_inicio, '%H:%i'), ' - ',
-          DATE_FORMAT(r.data_fim, '%H:%i')
+          TIME_FORMAT(r.data_inicio, '%H:%i'), ' - ',
+          TIME_FORMAT(r.data_fim, '%H:%i')
         ) AS horario
       FROM devolucao_estojo de
       JOIN reservas r ON de.reserva_id = r.id
       JOIN salas s ON r.sala_id = s.id
-      ORDER BY de.id DESC
-    `);
+      WHERE 1=1
+    `;
 
-    // Converte 'TRUE'/'FALSE' para 'completo'/'incompleto'
+    const values = [];
+
+    if (inicio) {
+      sql += ' AND DATE(r.data_inicio) >= ?';
+      values.push(inicio);
+    }
+    if (fim) {
+      sql += ' AND DATE(r.data_inicio) <= ?';
+      values.push(fim);
+    }
+    if (sala_id) {
+      sql += ' AND r.sala_id = ?';
+      values.push(sala_id);
+    }
+
+    sql += ' ORDER BY de.id DESC';
+
+    console.log('SQL DEVOLUÇÕES:', sql, values); // DEBUG
+
+    const devolucoes = await query(sql, values);
+
     const formatadas = devolucoes.map(d => ({
       ...d,
       estojo: d.estojo_completo === 'TRUE' ? 'completo' : 'incompleto'
@@ -322,6 +344,7 @@ app.get('/api/devolucoes', async (req, res) => {
     res.status(500).json([]);
   }
 });
+
 
 // === CRIAR DEVOLUÇÃO ===
 app.post('/api/devolucoes', async (req, res) => {

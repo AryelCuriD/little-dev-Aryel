@@ -7,7 +7,6 @@
   
   <link rel="stylesheet" href="global.css" />
   <link rel="stylesheet" href="relatorios.css" />
-  <link rel="icon" href="imgs/favicon.png" type="image/png">
 </head>
 <body>
 
@@ -18,21 +17,20 @@
       <div class="div-informacao"></div>
     </div>
     <div class="div-paginas">
-      <div class="paginas-grid">
-        <!-- opcional -->
-      </div>
+      <div class="paginas-grid"></div>
     </div>
   </div>
 
   <!-- CONTEÚDO -->
   <main class="container-relatorios">
 
-    <!-- TABELA: DEVOLUÇÕES DE CHAVE -->
+    <!-- TABELA DE DEVOLUÇÕES -->
     <section class="tabela-reservas">
       <div class="header-tabela">
         <h2>Devoluções de Chave</h2>
         <button id="btn-criar-devolucao" class="btn-criar">+ Criar Devolução</button>
       </div>
+
       <div class="tabela-container">
         <table id="tabela-devolucoes">
           <thead>
@@ -49,42 +47,58 @@
           <tbody></tbody>
         </table>
       </div>
+
       <p id="sem-dados" style="text-align:center; color:#666; display:none; margin-top:16px;">
         Nenhuma devolução registrada.
       </p>
     </section>
 
-    <!-- FILTRO: GERAR RELATÓRIO (PDF) -->
+    <!-- FILTRO + GERAR PDF (DIREITA) -->
     <aside class="filtro-relatorio">
-      <h3>Gerar Relatório (PDF)</h3>
+      <h3>Filtrar e Gerar Relatório</h3>
+
       <div class="form-group">
-        <label for="data-inicio">Data Inicial</label>
-        <input type="date" id="data-inicio">
+        <label>Data Inicial</label>
+        <input type="date" id="filtro-data-inicio">
       </div>
       <div class="form-group">
-        <label for="data-fim">Data Final</label>
-        <input type="date" id="data-fim">
+        <label>Data Final</label>
+        <input type="date" id="filtro-data-fim">
       </div>
-      <button id="btn-baixar-relatorio" class="btn-baixar">
-        Baixar Relatório
-      </button>
-      <p id="erro-filtro" style="color:red; font-size:0.9rem; margin-top:8px; display:none;">
-        Selecione um intervalo válido.
-      </p>
+      <div class="form-group">
+        <label>Sala</label>
+        <select id="filtro-sala">
+          <option value="">Carregando salas...</option>
+        </select>
+      </div>
+
+      <div class="form-group buttons">
+        <button id="btn-aplicar-filtro" class="btn-aplicar">Aplicar Filtro</button>
+        <button id="btn-limpar-filtro" class="btn-limpar">Limpar</button>
+      </div>
+
+      <div class="form-group" style="margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+        <button id="btn-baixar-relatorio" class="btn-baixar">
+          Baixar Relatório PDF
+        </button>
+        <p id="erro-filtro" style="color:red; font-size:0.9rem; margin-top:8px; display:none;">
+          Selecione um intervalo válido.
+        </p>
+      </div>
     </aside>
 
   </main>
 
   <!-- MODAL: CRIAR DEVOLUÇÃO -->
-  <div id="modal-criar-devolucao" class="modal" style="display:none;">
+  <div id="modal-criar-devolucao" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="fecharModalDevolucao()">×</span>
+      <span class="close" onclick="fecharModalDevolucao()">x</span>
       <h3>Criar Devolução de Chave</h3>
 
       <div class="form-group">
         <label>Reserva Concluída</label>
         <select id="select-reserva" required>
-          <option value="">Selecione uma reserva</option>
+          <option value="">Carregando...</option>
         </select>
       </div>
 
@@ -121,6 +135,11 @@
     </div>
   </footer>
 
+  <!-- CARREGA jsPDF COMO SCRIPT GLOBAL (SEM MODULE) -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- SEU SCRIPT (AGORA USA window.jspdf.jsPDF) -->
   <script type="module" src="relatorios.js"></script>
+
 </body>
 </html>

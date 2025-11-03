@@ -24,11 +24,11 @@
         </div>
         <div class="pagina-item">
           <h3>Adicionar Relatório</h3>
-          <img src="./imgs/plus (1).png" alt="Adicionar Relatório">
+          <img src="./imgs/plus (1).png" alt="Adicionar Relatório" onclick="abrirRelatoriosComModal()">
         </div>
         <div class="pagina-item">
           <h3>Lista de Relatórios</h3>
-          <img src="./imgs/list.png" alt="Lista de Relatórios">
+          <img src="./imgs/list.png" alt="Lista de Relatórios" onclick="window.location.href = '/relatorios'">
         </div>
       </div>
     </div>
@@ -120,6 +120,14 @@
       <img src="imgs/user.png" alt="User Icon" onclick="paginaUsuario()">
     </div>
   </footer>
+
+  <!-- FUNÇÃO PARA ABRIR RELATÓRIOS + MODAL -->
+  <script>
+    function abrirRelatoriosComModal() {
+      localStorage.setItem('abrirModalDevolucao', 'true');
+      window.location.href = '/relatorios';
+    }
+  </script>
 
   <script type="module" src="home.js"></script>
 </body>
