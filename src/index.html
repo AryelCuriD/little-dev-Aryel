@@ -9,9 +9,52 @@
 <body>
   <div class="container">
     <div class="top-row">
-      <div class="div-tabela"></div>
-      <div class="div-informacao"></div>
+
+      <!-- TABELA DE PRÓXIMAS RESERVAS -->
+      <div class="div-tabela">
+        <h2>Próximas Reservas</h2>
+        <div class="tabela-proximas-container">
+          <table id="tabela-proximas">
+            <thead>
+              <tr>
+                <th>Sala</th>
+                <th>Solicitante</th>
+                <th class="horario">Data/Horário</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="sem-reservas" class="sem-reservas">
+          Nenhuma reserva próxima no momento.
+        </p>
+      </div>
+
+      <!-- 4 CAIXAS DE INFORMAÇÕES -->
+      <div class="div-informacao">
+        <div class="info-grid">
+          <div class="info-card">
+            <span class="info-titulo">Salas de Aula</span>
+            <div class="info-valor" id="salas-disponiveis">--</div>
+          </div>
+          <div class="info-card">
+            <span class="info-titulo">Laboratórios</span>
+            <div class="info-valor" id="labs-disponiveis">--</div>
+          </div>
+          <div class="info-card">
+            <span class="info-titulo">Reservas Ativas</span>
+            <div class="info-valor" id="reservas-ativas">--</div>
+          </div>
+          <div class="info-card">
+            <span class="info-titulo">Devoluções Pendentes</span>
+            <div class="info-valor" id="devolucoes-pendentes">--</div>
+          </div>
+        </div>
+      </div>
+
     </div>
+
+    <!-- 4 BOTÕES -->
     <div class="div-paginas">
       <div class="paginas-grid">
         <div class="pagina-item">
@@ -40,7 +83,6 @@
       <span class="modal-close" onclick="fecharModalAdicionar()">×</span>
 
       <div class="modal-adicionar-body">
-        <!-- IMAGEM -->
         <div class="imagem-upload">
           <label for="upload-imagem" class="upload-label">
             <img src="./imgs/plus-photo.png" alt="Adicionar foto" id="preview-imagem">
@@ -48,7 +90,6 @@
           <input type="file" id="upload-imagem" accept="image/*" onchange="previewImagem(event)">
         </div>
 
-        <!-- FORMULÁRIO -->
         <div class="form-adicionar">
           <h3 id="modal-titulo-sala">Adicionar Nova Sala</h3>
 
@@ -87,13 +128,13 @@
             <div class="form-group">
               <label>Localização/Piso</label>
               <select id="novo-localizacao">
-                <option value="">Escolha uma opção</option>
+                <option value="">Carregando...</option>
               </select>
             </div>
             <div class="form-group">
               <label>Tipo de Sala</label>
               <select id="novo-tipo">
-                <option value="">Escolha uma opção</option>
+                <option value="">Carregando...</option>
               </select>
             </div>
           </div>
@@ -121,7 +162,6 @@
     </div>
   </footer>
 
-  <!-- FUNÇÃO PARA ABRIR RELATÓRIOS + MODAL -->
   <script>
     function abrirRelatoriosComModal() {
       localStorage.setItem('abrirModalDevolucao', 'true');

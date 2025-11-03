@@ -1,4 +1,6 @@
-/* CONTAINER PRINCIPAL */
+/* =============================================== */
+/* CONTAINER PRINCIPAL                             */
+/* =============================================== */
 .container {
   display: flex;
   flex-direction: column;
@@ -8,7 +10,9 @@
   box-sizing: border-box;
 }
 
-/* LINHA SUPERIOR (duas caixas brancas lado a lado) */
+/* =============================================== */
+/* LINHA SUPERIOR (duas caixas brancas)            */
+/* =============================================== */
 .top-row {
   display: flex;
   justify-content: space-between;
@@ -16,50 +20,177 @@
   margin-bottom: 30px;
 }
 
-/* CAIXA DA TABELA */
+/* CAIXA DA TABELA (ESQUERDA) */
 .div-tabela {
   border-radius: 15px;
   background-color: white;
   flex: 1.6;
   min-height: 380px;
   padding: 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
 }
 
-/* CAIXA DE INFORMAÇÕES */
-.div-informacao {
-  border-radius: 15px;
-  background-color: white;
+/* Título da tabela */
+.div-tabela h2 {
+  margin: 0 0 16px;
+  color: #111d4a;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+/* Container da tabela */
+.tabela-proximas-container {
   flex: 1;
-  min-height: 380px;
-  padding: 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  max-height: 320px; /* 5 linhas perfeitas */
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 1.5px solid #e0e0e0;
+  margin-top: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #111d4a #f8f9ff;
+}
+
+/* SCROLLBAR BONITA */
+.tabela-proximas-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tabela-proximas-container::-webkit-scrollbar-track {
+  background: #f8f9ff;
+  border-radius: 6px;
+}
+
+.tabela-proximas-container::-webkit-scrollbar-thumb {
+  background: #111d4a;
+  border-radius: 6px;
+}
+
+.tabela-proximas-container::-webkit-scrollbar-thumb:hover {
+  background: #0e183a;
+}
+
+#tabela-proximas {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+#tabela-proximas th {
+  background: #111d4a;
+  color: white;
+  padding: 12px 10px;
+  text-align: left;
+  font-weight: 600;
+}
+
+#tabela-proximas td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#tabela-proximas tr:hover {
+  background: #f8f9ff;
+}
+
+#tabela-proximas .sala {
+  font-weight: 600;
+  color: #111d4a;
+}
+
+#tabela-proximas .solicitante {
+  max-width: 150px;
+}
+
+#tabela-proximas tbody tr {
+  height: 50px;
+}
+
+.sem-reservas {
+  text-align: center;
+  color: #666;
+  margin-top: 16px;
+  font-style: italic;
+  display: none;
+}
+
+/* =============================================== */
+/* 4 CAIXAS DE INFORMAÇÕES (LIMPO E PROFISSIONAL)  */
+/* =============================================== */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 0;
+  width: 100%;
+  height: 100%;
   position: relative;
 }
 
-.div-informacao::before {
+.info-grid::before {
   content: '';
   position: absolute;
   top: 50%;
   left: 0;
   width: 100%;
-  height: 2px; /* Aumentei para maior visibilidade */
-  background-color: #111D4A;
+  height: 2px;
+  background-color: #111d4a;
   transform: translateY(-50%);
+  z-index: 1;
 }
 
-.div-informacao::after {
+.info-grid::after {
   content: '';
   position: absolute;
   top: 0;
   left: 50%;
-  width: 2px; /* Aumentei para maior visibilidade */
+  width: 2px;
   height: 100%;
-  background-color: #111D4A;
+  background-color: #111d4a;
   transform: translateX(-50%);
+  z-index: 1;
 }
 
-/* CAIXA INFERIOR (4 blocos) */
+.info-card {
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  transition: background 0.2s;
+  z-index: 2;
+}
+
+.info-card:hover {
+  background: #f8f9ff;
+}
+
+.info-titulo {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: #111d4a;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-valor {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1;
+}
+
+/* =============================================== */
+/* CAIXA INFERIOR (4 BOTÕES)                       */
+/* =============================================== */
 .div-paginas {
   border-radius: 15px;
   background-color: white;
@@ -67,7 +198,7 @@
   flex-grow: 1;
   min-height: 250px;
   padding: 40px 60px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,7 +214,7 @@
 
 .pagina-item h3 {
   font-size: 1.1rem;
-  color: #192A6B;
+  color: #192a6b;
   margin-bottom: 15px;
   font-weight: 700;
 }
@@ -99,44 +230,9 @@
   transform: scale(1.1);
 }
 
-/* ESTILOS PARA OVERLAY E NOTIFICAÇÕES */
-.overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1001;
-}
-
-.notificacoes {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  z-index: 1002;
-  width: 300px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.notificacoes h3 {
-  margin-top: 0;
-  color: #192A6B;
-}
-
-.notificacao-area {
-  margin-top: 10px;
-}
-
-/* === MODAL ADICIONAR SALA === */
+/* =============================================== */
+/* MODAL ADICIONAR SALA                            */
+/* =============================================== */
 .modal-adicionar {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -166,6 +262,7 @@
   font-size: 28px;
   cursor: pointer;
   color: #666;
+  z-index: 10;
 }
 
 .modal-adicionar-body {
@@ -246,7 +343,7 @@
   border-radius: 50%;
   cursor: pointer;
   display: inline-block;
-  transition: 0.2s;
+  transition: background-color 0.2s;
 }
 
 .bolinha-checkbox.preenchida {
@@ -264,17 +361,21 @@
   width: 100%;
   margin-top: 20px;
   font-size: 1.1rem;
+  transition: background 0.2s;
 }
 
 .btn-adicionar-sala:hover {
   background: #218838;
 }
 
-/* === OCULTA O TEXTO PADRÃO DO INPUT FILE === */
+/* =============================================== */
+/* UPLOAD DE IMAGEM                                */
+/* =============================================== */
 .upload-input-container {
   position: relative;
   display: inline-block;
   width: 100%;
+  margin-top: 12px;
 }
 
 .upload-input-container input[type="file"] {
@@ -307,13 +408,132 @@
   background: #0e183a;
 }
 
-/* Esconde o texto padrão do navegador */
-.upload-input-container input[type="file"]::-webkit-file-upload-button {
-  visibility: hidden;
+/* =============================================== */
+/* 4 CAIXAS COM LINHAS DE SEPARAÇÃO (PERFEITO)     */
+/* =============================================== */
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0;
+  width: 100%;
+  height: 100%;
+  border: 1.5px solid #111d4a; /* BORDA EXTERNA */
+  border-radius: 14px;
+  overflow: hidden; /* Para bordas arredondadas internas */
 }
-.upload-input-container input[type="file"]::file-selector-button {
-  visibility: hidden;
+
+.info-card {
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border-right: 1.5px solid #111d4a;
+  border-bottom: 1.5px solid #111d4a;
+  transition: background 0.2s;
+  position: relative;
+  z-index: 2;
 }
-.upload-input-container input[type="file"] {
-  color: transparent;
+
+/* Remove borda da direita nas colunas da direita */
+.info-card:nth-child(2n) {
+  border-right: none;
+}
+
+/* Remove borda inferior nas linhas de baixo */
+.info-card:nth-child(n+3) {
+  border-bottom: none;
+}
+
+/* Hover */
+.info-card:hover {
+  background: #f8f9ff;
+}
+
+.info-titulo {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: #111d4a;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-valor {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1;
+}
+
+/* Responsivo: 1 coluna em mobile */
+@media (max-width: 600px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, 1fr);
+  }
+
+  .info-card {
+    border-right: none !important;
+    border-bottom: 1.5px solid #111d4a;
+  }
+
+  .info-card:last-child {
+    border-bottom: none;
+  }
+}
+/* =============================================== */
+/* RESPONSIVO                                      */
+/* =============================================== */
+@media (max-width: 1200px) {
+  .container {
+    padding: 30px 40px;
+  }
+}
+
+@media (max-width: 900px) {
+  .top-row {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .div-tabela,
+  .div-informacao {
+    flex: 1;
+    min-height: 300px;
+  }
+
+  .info-grid::before,
+  .info-grid::after {
+    display: none;
+  }
+
+  .div-paginas {
+    padding: 30px;
+  }
+
+  .paginas-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 20px;
+  }
+
+  .paginas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, 1fr);
+  }
 }

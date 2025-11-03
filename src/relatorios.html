@@ -48,12 +48,12 @@
         </table>
       </div>
 
-      <p id="sem-dados" style="text-align:center; color:#666; display:none; margin-top:16px;">
+      <p id="sem-dados" class="sem-dados">
         Nenhuma devolução registrada.
       </p>
     </section>
 
-    <!-- FILTRO + GERAR PDF (DIREITA) -->
+    <!-- FILTRO + GERAR PDF -->
     <aside class="filtro-relatorio">
       <h3>Filtrar e Gerar Relatório</h3>
 
@@ -77,11 +77,11 @@
         <button id="btn-limpar-filtro" class="btn-limpar">Limpar</button>
       </div>
 
-      <div class="form-group" style="margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+      <div class="form-group pdf-section">
         <button id="btn-baixar-relatorio" class="btn-baixar">
           Baixar Relatório PDF
         </button>
-        <p id="erro-filtro" style="color:red; font-size:0.9rem; margin-top:8px; display:none;">
+        <p id="erro-filtro" class="erro-filtro">
           Selecione um intervalo válido.
         </p>
       </div>
@@ -135,10 +135,10 @@
     </div>
   </footer>
 
-  <!-- CARREGA jsPDF COMO SCRIPT GLOBAL (SEM MODULE) -->
+  <!-- jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
-  <!-- SEU SCRIPT (AGORA USA window.jspdf.jsPDF) -->
+  <!-- SEU SCRIPT -->
   <script type="module" src="relatorios.js"></script>
 
 </body>

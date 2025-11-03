@@ -7,7 +7,7 @@
  * 3. Rotas API - Salas
  * 4. Rotas API - Reservas (PERÍODO + INTERVALO)
  * 5. Rotas API - Devolução
- * 6. Rotas API - Dashboard e Filtros
+ * 6. Rotas API - Dashboard e Próximas Reservas
  * 7. Inicialização do servidor
  */
 const multer = require('multer');
@@ -237,7 +237,7 @@ app.get('/api/reservas/verificar-range', async (req, res) => {
       WHERE sala_id = ? AND (
         (data_inicio < ? AND data_fim > ?) OR
         (data_inicio < ? AND data_fim > ?) OR
-        (data_inicio >= ? AND data_fim <= ?) OR
+        (divid_inicio >= ? AND data_fim <= ?) OR
         (data_inicio <= ? AND data_fim >= ?)
       )
     `, [sala_id, fim, inicio, fim, inicio, inicio, fim, inicio, fim]);
@@ -286,7 +286,7 @@ app.post('/api/reservas', async (req, res) => {
 // 4. ROTAS API - DEVOLUÇÃO (USANDO devolucao_estojo)
 // ===============================================
 
-// === LISTAR DEVOLUÇÕES (COM FILTRO POR SALA, DATA, ETC) ===
+// === LISTAR DEVOLUÇÕES ===
 app.get('/api/devolucoes', async (req, res) => {
   const { inicio, fim, sala_id } = req.query;
 
@@ -329,8 +329,6 @@ app.get('/api/devolucoes', async (req, res) => {
 
     sql += ' ORDER BY de.id DESC';
 
-    console.log('SQL DEVOLUÇÕES:', sql, values); // DEBUG
-
     const devolucoes = await query(sql, values);
 
     const formatadas = devolucoes.map(d => ({
@@ -344,7 +342,6 @@ app.get('/api/devolucoes', async (req, res) => {
     res.status(500).json([]);
   }
 });
-
 
 // === CRIAR DEVOLUÇÃO ===
 app.post('/api/devolucoes', async (req, res) => {
@@ -409,25 +406,78 @@ app.get('/api/reservas/pendentes-devolucao', async (req, res) => {
     res.status(500).json([]);
   }
 });
+
 // ===============================================
-// 5. DASHBOARD
+// 5. DASHBOARD + PRÓXIMAS RESERVAS
 // ===============================================
+
+// === TODAS AS RESERVAS ATIVAS/FUTURAS (COM DIA) ===
+app.get('/api/reservas/proximas', async (req, res) => {
+  try {
+    const agora = new Date();
+    const hoje = agora.toISOString().split('T')[0];
+
+    const proximas = await query(`
+      SELECT 
+        r.id,
+        r.solicitante,
+        s.numero_sala,
+        DATE_FORMAT(r.data_inicio, '%d/%m') AS dia,
+        DATE_FORMAT(r.data_inicio, '%H:%i') AS hora_inicio,
+        DATE_FORMAT(r.data_fim, '%H:%i') AS hora_fim,
+        CONCAT(DATE_FORMAT(r.data_inicio, '%d/%m'), ' - ', DATE_FORMAT(r.data_inicio, '%H:%i'), ' - ', DATE_FORMAT(r.data_fim, '%H:%i')) AS horario_completo,
+        CASE 
+          WHEN r.data_inicio > NOW() THEN 'futura'
+          WHEN r.data_inicio <= NOW() AND r.data_fim >= NOW() THEN 'ativa'
+          ELSE 'encerrada'
+        END AS status
+      FROM reservas r
+      JOIN salas s ON r.sala_id = s.id
+      WHERE r.data_fim > NOW()
+        AND DATE(r.data_inicio) >= ?
+      ORDER BY r.data_inicio ASC
+    `, [hoje]);
+
+    res.json(proximas);
+  } catch (err) {
+    console.error('Erro ao buscar reservas ativas/futuras:', err);
+    res.status(500).json([]);
+  }
+});
+
+// === DASHBOARD PRINCIPAL (CORRIGIDO) ===
 app.get('/api/dashboard', async (req, res) => {
   try {
-    const [salas] = await query("SELECT COUNT(*) AS total FROM salas WHERE tipo_sala LIKE 'Sala%'");
-    const [labs] = await query("SELECT COUNT(*) AS total FROM salas WHERE tipo_sala LIKE 'Laboratório%'");
-    const [ativas] = await query("SELECT COUNT(*) AS total FROM reservas r WHERE r.data_inicio <= NOW() AND r.data_fim >= NOW()");
-    const [pendentes] = await query("SELECT COUNT(*) AS total FROM devolucoes WHERE estojo = 'incompleto'");
+    const [salasResult] = await query("SELECT COUNT(*) AS total FROM salas WHERE tipo_sala LIKE '%aula%' OR tipo_sala LIKE 'Sala%'");
+    const [labsResult] = await query("SELECT COUNT(*) AS total FROM salas WHERE tipo_sala LIKE '%aborat%'");
+
+    const [ativasResult] = await query(`
+      SELECT COUNT(*) AS total 
+      FROM reservas 
+      WHERE data_inicio <= NOW() AND data_fim >= NOW()
+    `);
+
+    const [pendentesResult] = await query(`
+      SELECT COUNT(*) AS total 
+      FROM reservas r
+      LEFT JOIN devolucao_estojo de ON r.id = de.reserva_id
+      WHERE r.data_fim < NOW() AND de.id IS NULL
+    `);
 
     res.json({
-      salasDisponiveis: salas.total,
-      labsDisponiveis: labs.total,
-      reservasAtivas: ativas.total,
-      devolucoesPendentes: pendentes.total
+      salasDisponiveis: salasResult.total,
+      labsDisponiveis: labsResult.total,
+      reservasAtivas: ativasResult.total,
+      devolucoesPendentes: pendentesResult.total
     });
   } catch (err) {
-    console.error('Erro no dashboard:', err);
-    res.status(500).json({ error: 'Erro' });
+    console.error('Erro crítico no dashboard:', err);
+    res.status(500).json({
+      salasDisponiveis: 0,
+      labsDisponiveis: 0,
+      reservasAtivas: 0,
+      devolucoesPendentes: 0
+    });
   }
 });
 
@@ -438,5 +488,6 @@ const PORT = 8080;
 app.listen(PORT, () => {
   console.log(`\nServidor rodando em http://localhost:${PORT}`);
   console.log(`  • Home: http://localhost:${PORT}`);
-  console.log(`  • Reservas: http://localhost:${PORT}/reservas\n`);
+  console.log(`  • Reservas: http://localhost:${PORT}/reservas`);
+  console.log(`  • Relatórios: http://localhost:${PORT}/relatorios\n`);
 });

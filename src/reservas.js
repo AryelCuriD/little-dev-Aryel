@@ -303,7 +303,7 @@ function fecharModal() {
   document.getElementById("modal-detalhes").style.display = "none";
 }
 
-// === RESERVA ===
+// === RESERVA (CORRIGIDA: AVISA A PÁGINA INICIAL) ===
 async function fazerReserva() {
   const solicitante = document.getElementById('solicitante').value.trim();
   const inicio = document.getElementById('hora-inicio').value;
@@ -351,13 +351,20 @@ async function fazerReserva() {
     });
 
     if (res.ok) {
+      const data = await res.json();
+
+      // AVISA A PÁGINA INICIAL (EM TEMPO REAL)
+      localStorage.setItem('atualizar_dashboard', Date.now().toString());
+
       alert('Reserva realizada com sucesso!');
       fecharModal();
       carregarSalas();
     } else {
-      alert('Erro ao reservar.');
+      const erro = await res.text();
+      alert('Erro ao reservar: ' + erro);
     }
   } catch (err) {
+    console.error('Erro de conexão:', err);
     alert('Erro de conexão.');
   }
 }
@@ -370,7 +377,7 @@ function iniciarAtualizacaoAutomatica() {
   }, 30000);
 }
 
-// Expor funções globais
+// === EXPORTA FUNÇÕES GLOBAIS ===
 window.abrirModal = abrirModal;
 window.fecharModal = fecharModal;
 window.fazerReserva = fazerReserva;

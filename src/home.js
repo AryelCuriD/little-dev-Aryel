@@ -1,35 +1,102 @@
 // src/home.js
-import { setActivePage, toggleBolinha } from './global.js';  // ← IMPORTAR toggleBolinha
+import { setActivePage, toggleBolinha } from './global.js';
 
 let enviandoSala = false;
 
+// src/home.js (trecho atualizado)
+
+let ultimaAtualizacao = 0;
+
 document.addEventListener('DOMContentLoaded', () => {
   setActivePage();
-  carregarEstatisticasDashboard();
+  carregarDashboard();
+  
+  // === ATUALIZA A CADA 30s (backup) ===
+  setInterval(carregarDashboard, 30000);
+
+  // === ESCUTA MUDANÇAS EM TEMPO REAL (via storage) ===
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'atualizar_dashboard' && e.newValue) {
+      const timestamp = parseInt(e.newValue);
+      if (timestamp > ultimaAtualizacao) {
+        ultimaAtualizacao = timestamp;
+        carregarDashboard();
+      }
+    }
+  });
+
+  // === POLLING SIMPLES A CADA 5s (garante atualização) ===
+  setInterval(() => {
+    verificarNovasReservas();
+  }, 5000);
 });
 
-// === ESTATÍSTICAS DO DASHBOARD ===
-async function carregarEstatisticasDashboard() {
-  const container = document.getElementById('salas-disponiveis');
-  if (!container) return;
-
+// === VERIFICA SE HÁ NOVA RESERVA (sem recarregar tudo) ===
+async function verificarNovasReservas() {
   try {
-    const res = await fetch('/api/dashboard');
-    if (!res.ok) throw new Error();
-    const data = await res.json();
+    const res = await fetch('/api/reservas/proximas');
+    if (!res.ok) return;
+    const novas = await res.json();
+    if (novas.length > 0) {
+      const ultima = novas[0].id;
+      if (ultima > ultimaAtualizacao) {
+        ultimaAtualizacao = ultima;
+        localStorage.setItem('atualizar_dashboard', ultima);
+        carregarDashboard();
+      }
+    }
+  } catch (err) {
+    // Silencioso
+  }
+}
 
-    const update = (id, value) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = value;
-    };
+// === CARREGA DASHBOARD COM APIS REAIS ===
+async function carregarDashboard() {
+  try {
+    const [dashRes, proxRes] = await Promise.all([
+      fetch('/api/dashboard').then(r => r.ok ? r.json() : { salasDisponiveis: 0, labsDisponiveis: 0, reservasAtivas: 0, devolucoesPendentes: 0 }),
+      fetch('/api/reservas/proximas').then(r => r.ok ? r.json() : [])
+    ]);
 
-    update('salas-disponiveis', data.salasDisponiveis);
-    update('labs-disponiveis', data.labsDisponiveis);
-    update('reservas-ativas', data.reservasAtivas);
-    update('devolucoes-pendentes', data.devolucoesPendentes);
+    atualizarDashboard(dashRes, proxRes);
   } catch (err) {
     console.error('Erro ao carregar dashboard:', err);
   }
+}
+
+// === ATUALIZA UI ===
+function atualizarDashboard(dashboard, proximasReservas) {
+  const update = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value ?? '--';
+  };
+
+  update('salas-disponiveis', dashboard.salasDisponiveis);
+  update('labs-disponiveis', dashboard.labsDisponiveis);
+  update('reservas-ativas', dashboard.reservasAtivas);
+  update('devolucoes-pendentes', dashboard.devolucoesPendentes);
+
+  renderizarProximas(proximasReservas);
+}
+
+function renderizarProximas(reservas) {
+  const tbody = document.querySelector('#tabela-proximas tbody');
+  const sem = document.getElementById('sem-reservas');
+
+  if (!reservas || reservas.length === 0) {
+    sem.style.display = 'block';
+    tbody.innerHTML = '';
+    return;
+  }
+
+  sem.style.display = 'none';
+  tbody.innerHTML = reservas.map(r => `
+    <tr>
+      <td class="sala">Sala ${r.numero_sala}</td>
+      <td>${r.solicitante}</td>
+      <td class="horario">${r.horario_completo}</td>
+    </tr>
+  `).join('');
 }
 
 // === MODAL ADICIONAR SALA ===
@@ -66,21 +133,24 @@ async function carregarOpcoesFiltros() {
     const res = await fetch('/api/salas/opcoes');
     if (!res.ok) throw new Error();
     const { localizacoes, tipos } = await res.json();
-
-    const fillSelect = (id, items) => {
-      const select = document.getElementById(id);
-      if (select) {
-        select.innerHTML = '<option value="">Escolha</option>';
-        items.forEach(item => select.appendChild(new Option(item, item)));
-      }
-    };
-
-    fillSelect('novo-localizacao', localizacoes);
-    fillSelect('novo-tipo', tipos);
-  } catch (err) {
-    console.error('Erro ao carregar opções de filtro:', err);
-    alert('Erro ao carregar opções.');
+    preencherSelects(localizacoes, tipos);
+  } catch {
+    const localizacoes = ['Térreo', '1º Andar', '2º Andar'];
+    const tipos = ['Sala de Aula', 'Laboratório de Informática', 'Laboratório de Eletrônica'];
+    preencherSelects(localizacoes, tipos);
   }
+}
+
+function preencherSelects(localizacoes, tipos) {
+  const fill = (id, items) => {
+    const select = document.getElementById(id);
+    if (select) {
+      select.innerHTML = '<option value="">Escolha</option>';
+      items.forEach(item => select.appendChild(new Option(item, item)));
+    }
+  };
+  fill('novo-localizacao', localizacoes);
+  fill('novo-tipo', tipos);
 }
 
 async function adicionarSala() {
@@ -89,7 +159,7 @@ async function adicionarSala() {
 
   const btn = document.getElementById('btn-acao-sala');
   const textoOriginal = btn.textContent;
-  btn.textContent = 'Enviando...';
+  btn.textContent = 'Adicionando...';
   btn.disabled = true;
 
   const numero = document.getElementById('novo-numero').value.trim();
@@ -131,7 +201,7 @@ async function adicionarSala() {
     if (res.ok) {
       alert('Sala adicionada com sucesso!');
       fecharModalAdicionar();
-      carregarEstatisticasDashboard();
+      carregarDashboard();
     } else {
       const erro = await res.text();
       alert('Erro: ' + erro);
@@ -146,7 +216,7 @@ async function adicionarSala() {
   }
 }
 
-// EXPOR FUNÇÕES PARA O HTML (OBRIGATÓRIO!)
+// === EXPORTA FUNÇÕES GLOBAIS ===
 window.abrirModalAdicionar = abrirModalAdicionar;
 window.fecharModalAdicionar = fecharModalAdicionar;
-window.toggleBolinha = toggleBolinha;  // ← VEM DO global.js
+window.toggleBolinha = toggleBolinha;

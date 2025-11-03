@@ -10,7 +10,7 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6); /* FUNDO ESCURO */
+  background: rgba(0, 0, 0, 0.6);
   justify-content: center;
   align-items: center;
   overflow: auto;
@@ -54,7 +54,7 @@
 }
 
 /* =============================================== */
-/* RESTO DO CSS (TABELA, FILTRO, BOTÕES)           */
+/* LAYOUT PRINCIPAL - CENTRALIZAÇÃO VERTICAL       */
 /* =============================================== */
 
 .container-relatorios {
@@ -63,16 +63,49 @@
   padding: 24px;
   max-width: 1400px;
   margin: 0 auto;
+  min-height: calc(100vh - 180px); /* Altura total - header - footer */
+  align-items: flex-start; /* Alinha no topo, mas com flex */
   flex-wrap: wrap;
+}
+
+/* Colunas com altura automática e alinhamento interno */
+.tabela-reservas,
+.filtro-relatorio {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
 }
 
 .tabela-reservas {
   flex: 7;
   min-width: 300px;
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.filtro-relatorio {
+  flex: 3;
+  min-width: 280px;
+  max-width: 360px;
+}
+
+/* Garante que o conteúdo interno ocupe o espaço disponível */
+.tabela-reservas .tabela-container,
+.filtro-relatorio > *:not(h3) {
+  flex: 1;
+}
+
+/* =============================================== */
+/* TABELA DE DEVOLUÇÕES                            */
+/* =============================================== */
+
+.header-tabela {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
 .tabela-container {
@@ -80,6 +113,7 @@
   border-radius: 12px;
   border: 1.5px solid #e0e0e0;
   margin-top: 8px;
+  flex: 1; /* Ocupa o espaço restante */
 }
 
 #tabela-devolucoes {
@@ -123,13 +157,6 @@
   font-weight: 600;
 }
 
-.header-tabela {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
 .btn-criar {
   background: #111d4a;
   color: white;
@@ -140,17 +167,13 @@
   cursor: pointer;
 }
 
-.btn-criar:hover { background: #0e183a; }
-
-.filtro-relatorio {
-  flex: 3;
-  min-width: 280px;
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  height: fit-content;
+.btn-criar:hover { 
+  background: #0e183a; 
 }
+
+/* =============================================== */
+/* FILTROS E BOTÕES                                */
+/* =============================================== */
 
 .filtro-relatorio h3 {
   margin: 0 0 20px;
@@ -208,14 +231,18 @@
   color: white;
 }
 
-.btn-aplicar:hover { background: #0e183a; }
+.btn-aplicar:hover { 
+  background: #0e183a; 
+}
 
 .btn-limpar {
   background: #e9ecef;
   color: #495057;
 }
 
-.btn-limpar:hover { background: #dee2e6; }
+.btn-limpar:hover { 
+  background: #dee2e6; 
+}
 
 .btn-baixar {
   width: 100%;
@@ -227,9 +254,16 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  margin-top: 16px;
 }
 
-.btn-baixar:hover { background: #0e183a; }
+.btn-baixar:hover { 
+  background: #0e183a; 
+}
+
+/* =============================================== */
+/* MODAL - FORMULÁRIO                              */
+/* =============================================== */
 
 .modal .form-group {
   margin-bottom: 16px;
@@ -242,7 +276,8 @@
   color: #192a6b;
 }
 
-.modal select, .modal textarea {
+.modal select, 
+.modal textarea {
   width: 100%;
   padding: 10px;
   border: 1.5px solid #ccc;
@@ -253,6 +288,7 @@
 .radio-group {
   display: flex;
   gap: 16px;
+  margin-top: 8px;
 }
 
 .radio-group label {
@@ -275,10 +311,27 @@
   margin-top: 8px;
 }
 
-.btn-salvar:hover { background: #0e183a; }
+.btn-salvar:hover { 
+  background: #0e183a; 
+}
 
-/* Responsivo */
+/* =============================================== */
+/* RESPONSIVO                                      */
+/* =============================================== */
+
 @media (max-width: 900px) {
-  .container-relatorios { flex-direction: column; }
-  .filtro-relatorio { order: -1; }
+  .container-relatorios {
+    flex-direction: column;
+    padding: 16px;
+  }
+  
+  .tabela-reservas,
+  .filtro-relatorio {
+    max-width: none;
+    width: 100%;
+  }
+  
+  .filtro-relatorio {
+    order: -1;
+  }
 }
