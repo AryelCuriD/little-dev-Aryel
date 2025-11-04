@@ -1,5 +1,9 @@
-// src/reservas.js
-import { setActivePage, toggleBolinha, previewImagem } from './global.js';
+
+import { setActivePage, toggleBolinha, previewImagem, notificarFimReserva } from './global.js';
+
+// Expõe funções globais para o HTML
+window.previewImagem = previewImagem;
+window.toggleBolinha = toggleBolinha;
 
 let salas = [];
 let salaSelecionada = null;
@@ -22,7 +26,7 @@ async function carregarFiltros() {
 
   try {
     const res = await fetch('/api/filtros-salas');
-    if (!res.ok) throw new Error();
+    if (!res.ok) throw new Error('Falha ao buscar filtros');
     const { tipos, localizacoes, faixas } = await res.json();
 
     const addOptions = (select, items, placeholder) => {
@@ -32,6 +36,7 @@ async function carregarFiltros() {
 
     addOptions(selectTipo, tipos, 'Todos');
     addOptions(selectLocal, localizacoes, 'Todos');
+    selectCapacidade.innerHTML = '<option value="todos">Todos</option>';
     faixas.forEach(f => {
       const texto = f === '40+' ? '40+ alunos' : `${f} alunos`;
       selectCapacidade.appendChild(new Option(texto, f));
@@ -65,7 +70,7 @@ async function carregarSalas(filtros = {}) {
 
     const url = `/api/salas${params.toString() ? `?${params.toString()}` : ''}`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error();
+    if (!res.ok) throw new Error('Falha ao buscar salas');
     salas = await res.json();
 
     let statusMap = {};
@@ -92,7 +97,8 @@ async function carregarSalas(filtros = {}) {
                 <img src="./imgs/${disponivel ? 'check' : 'unavailable'}.png" class="status-icone">
               </div>
               <div class="sala-imagem">
-                <img src="/api/salas/${sala.id}/imagem" alt="Sala ${sala.numero_sala}">
+                <img src="/api/salas/${sala.id}/imagem" alt="Sala ${sala.numero_sala}"
+                     onerror="this.src='./imgs/sala-placeholder.jpg'; this.onerror=null;">
               </div>
               <div class="sala-info">
                 <h3>Sala ${sala.numero_sala}</h3>
@@ -112,6 +118,7 @@ async function carregarSalas(filtros = {}) {
     document.querySelectorAll('.btn-detalhes').forEach(btn => {
       btn.onclick = () => {
         const sala = salas.find(s => s.id == btn.dataset.salaId);
+        if (!sala) return console.error('Sala não encontrada');
         abrirModal(sala);
       };
     });
@@ -121,7 +128,222 @@ async function carregarSalas(filtros = {}) {
   }
 }
 
-// === CALENDÁRIO ===
+// === MODAL DETALHES ===
+function abrirModal(sala) {
+  salaSelecionada = sala;
+  dataSelecionada = null;
+
+  const el = id => document.getElementById(id);
+  if (!el('modal-numero')) return;
+
+  el("modal-numero").textContent = `Sala ${sala.numero_sala}`;
+  el("modal-tipo").textContent = sala.tipo_sala;
+  el("modal-localizacao").textContent = sala.localizacao;
+  el("modal-capacidade").textContent = sala.capacidade;
+  const imgEl = el("modal-imagem");
+  if (imgEl) imgEl.src = `/api/salas/${sala.id}/imagem`;
+
+  const setBolinha = (id, valor) => {
+    const b = el(id);
+    if (b) b.classList.toggle('preenchida', !!valor);
+  };
+  setBolinha('modal-projetor', sala.projetor);
+  setBolinha('modal-ar', sala.ar_condicionado);
+  setBolinha('modal-tv', sala.televisao);
+  setBolinha('modal-pc', sala.computador);
+
+  if (el("solicitante")) el("solicitante").value = "";
+
+  const hoje = new Date();
+  calendarioMes = hoje.getMonth();
+  calendarioAno = hoje.getFullYear();
+  renderizarCalendario();
+  inicializarHorarios();
+  atualizarStatusDisponibilidade();
+
+  const btnEditar = document.querySelector('.btn-editar-sala');
+  if (btnEditar) btnEditar.dataset.salaId = sala.id;
+
+  const modal = document.getElementById("modal-detalhes");
+  if (modal) modal.style.display = "flex";
+}
+
+function fecharModal() {
+  const modal = document.getElementById("modal-detalhes");
+  if (modal) modal.style.display = "none";
+}
+
+// === CARREGAR OPÇÕES PARA SELECTS ===
+async function carregarOpcoesSala() {
+  const selectTipo = document.getElementById('novo-tipo');
+  const selectLocal = document.getElementById('novo-localizacao');
+  const selectCapacidade = document.getElementById('novo-capacidade');
+
+  if (!selectTipo || !selectLocal || !selectCapacidade) return;
+
+  try {
+    const url = '/api/salas/opcoes';
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    const limpar = select => {
+      select.innerHTML = '<option value="">Escolha uma opção</option>';
+    };
+
+    limpar(selectTipo);
+    limpar(selectLocal);
+    limpar(selectCapacidade);
+
+    (data.tipos || []).forEach(t => selectTipo.add(new Option(t, t)));
+    (data.localizacoes || []).forEach(l => selectLocal.add(new Option(l, l)));
+    (data.capacidades || []).forEach(c => {
+      const texto = c === '40+' ? '40+ alunos' : `${c} alunos`;
+      selectCapacidade.add(new Option(texto, c));
+    });
+
+  } catch (err) {
+    console.error('[FALHA] Erro ao carregar opções:', err);
+    alert('Erro ao carregar opções da sala.');
+  }
+}
+
+// === EDITAR SALA ===
+async function abrirModalEditar() {
+  const btnEditar = document.querySelector('.btn-editar-sala');
+  const salaId = btnEditar?.dataset.salaId;
+
+  if (!salaId) {
+    alert('Erro: sala não identificada.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/salas/${salaId}`);
+    if (!res.ok) throw new Error('Sala não encontrada');
+    const sala = await res.json();
+
+    await carregarOpcoesSala();
+
+    const el = id => document.getElementById(id);
+    el('modal-titulo-sala').textContent = 'Editar Sala';
+    el('novo-numero').value = sala.numero_sala || '';
+    el('novo-tipo').value = sala.tipo_sala || '';
+    el('novo-localizacao').value = sala.localizacao || '';
+    el('novo-capacidade').value = sala.capacidade || '';
+
+    const setBolinha = (id, valor) => {
+      const b = el(id);
+      if (b) b.classList.toggle('preenchida', !!valor);
+    };
+    setBolinha('check-projetor', sala.projetor);
+    setBolinha('check-ar', sala.ar_condicionado);
+    setBolinha('check-tv', sala.televisao);
+    setBolinha('check-pc', sala.computador);
+
+    const preview = el('preview-imagem');
+    if (preview) preview.src = `/api/salas/${salaId}/imagem?t=${Date.now()}`;
+
+    const btnAcao = el('btn-acao-sala');
+    if (btnAcao) {
+      btnAcao.textContent = 'Salvar Alterações';
+      btnAcao.onclick = () => salvarEdicao(salaId);
+    }
+
+    fecharModal();
+    const modalEdit = document.getElementById('modal-adicionar-sala');
+    if (modalEdit) modalEdit.style.display = 'flex';
+
+  } catch (err) {
+    console.error('Erro ao abrir edição:', err);
+    alert('Erro ao carregar dados da sala.');
+  }
+}
+
+// === SALVAR EDIÇÃO ===
+async function salvarEdicao(salaId) {
+  const el = id => document.getElementById(id);
+  const numero = el('novo-numero')?.value.trim();
+  const tipo = el('novo-tipo')?.value;
+  const local = el('novo-localizacao')?.value;
+  const capacidade = el('novo-capacidade')?.value;
+
+  if (!numero || !tipo || !local || !capacidade) {
+    alert('Preencha todos os campos!');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('numero_sala', numero);
+  formData.append('tipo_sala', tipo);
+  formData.append('localizacao', local);
+  formData.append('capacidade', capacidade);
+  formData.append('projetor', el('check-projetor').classList.contains('preenchida'));
+  formData.append('ar_condicionado', el('check-ar').classList.contains('preenchida'));
+  formData.append('televisao', el('check-tv').classList.contains('preenchida'));
+  formData.append('computador', el('check-pc').classList.contains('preenchida'));
+
+  const fileInput = el('upload-imagem');
+  if (fileInput?.files[0]) formData.append('imagem', fileInput.files[0]);
+
+  try {
+    const res = await fetch(`/api/salas/${salaId}`, {
+      method: 'PUT',
+      body: formData
+    });
+
+    if (res.ok) {
+      alert('Sala atualizada com sucesso!');
+      fecharModalAdicionar();
+      carregarSalas();
+    } else {
+      const erro = await res.text();
+      alert('Erro ao salvar: ' + erro);
+    }
+  } catch (err) {
+    console.error('Erro ao salvar:', err);
+    alert('Erro de conexão.');
+  }
+}
+
+function fecharModalAdicionar() {
+  const modal = document.getElementById('modal-adicionar-sala');
+  if (modal) modal.style.display = 'none';
+
+  const upload = document.getElementById('upload-imagem');
+  if (upload) upload.value = '';
+
+  const preview = document.getElementById('preview-imagem');
+  if (preview) preview.src = './imgs/plus-photo.png';
+
+  ['novo-tipo', 'novo-localizacao', 'novo-capacidade'].forEach(id => {
+    const select = document.getElementById(id);
+    if (select) select.innerHTML = '<option value="">Escolha uma opção</option>';
+  });
+
+  const btn = document.getElementById('btn-acao-sala');
+  if (btn) {
+    btn.textContent = 'Adicionar Sala';
+    btn.onclick = null;
+  }
+}
+
+// === EXPOSIÇÃO GLOBAL ===
+window.abrirModal = abrirModal;
+window.fecharModal = fecharModal;
+window.fazerReserva = fazerReserva;
+window.mudarMes = mudarMes;
+window.selecionarDia = selecionarDia;
+window.atualizarHoraFim = atualizarHoraFim;
+window.abrirModalEditar = abrirModalEditar;
+window.salvarEdicao = salvarEdicao;
+window.fecharModalAdicionar = fecharModalAdicionar;
+
+// === CALENDÁRIO, HORÁRIOS E RESERVA ===
 let calendarioMes = new Date().getMonth();
 let calendarioAno = new Date().getFullYear();
 
@@ -143,9 +365,9 @@ function renderizarCalendario() {
 
   let html = `
     <div class="calendario-header">
-      <button onclick="mudarMes(-1)" class="calendario-seta" id="seta-esquerda">←</button>
+      <button onclick="mudarMes(-1)" class="calendario-seta" id="seta-esquerda">Previous</button>
       <div class="calendario-titulo">${nomeMes}</div>
-      <button onclick="mudarMes(1)" class="calendario-seta">→</button>
+      <button onclick="mudarMes(1)" class="calendario-seta">Next</button>
     </div>
     <div class="calendario-dias-semana">
       <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
@@ -194,7 +416,6 @@ function mudarMes(delta) {
   atualizarStatusDisponibilidade();
 }
 
-// === HORÁRIOS ===
 function gerarHorarios() {
   const horarios = [];
   for (let h = 7; h <= 18; h++) {
@@ -218,9 +439,9 @@ function inicializarHorarios() {
 }
 
 function atualizarHoraFim() {
-  const inicio = document.getElementById('hora-inicio').value;
+  const inicio = document.getElementById('hora-inicio')?.value;
   const fimSelect = document.getElementById('hora-fim');
-  if (!inicio) {
+  if (!fimSelect || !inicio) {
     fimSelect.innerHTML = '<option value="">Selecione</option>';
     fimSelect.disabled = true;
     return;
@@ -232,19 +453,19 @@ function atualizarHoraFim() {
 
   fimSelect.innerHTML = '<option value="">Selecione</option>';
   for (let i = idxInicio + 1; i < horarios.length; i++) {
-    const opt = new Option(horarios[i], horarios[i]);
-    fimSelect.appendChild(opt);
+    fimSelect.appendChild(new Option(horarios[i], horarios[i]));
   }
   fimSelect.disabled = false;
 }
 
-// === MODAL DETALHES ===
 async function atualizarStatusDisponibilidade() {
   const inicio = document.getElementById('hora-inicio')?.value;
   const fim = document.getElementById('hora-fim')?.value;
   const statusTexto = document.getElementById('modal-status-texto');
   const statusIcone = document.getElementById('modal-status-icone');
   const statusDiv = document.querySelector('.modal-status');
+
+  if (!statusTexto || !statusIcone || !statusDiv) return;
 
   if (!dataSelecionada || !inicio || !fim) {
     statusTexto.textContent = 'Selecione data e horário';
@@ -257,7 +478,8 @@ async function atualizarStatusDisponibilidade() {
   const dataFim = `${dataSelecionada} ${fim}:00`;
 
   try {
-    const res = await fetch(`/api/reservas/verificar-range?sala_id=${salaSelecionada.id}&inicio=${dataInicio}&fim=${dataFim}`);
+    const res = await fetch(`/api/reservas/verificar-range?sala_id=${salaSelecionada.id}&inicio=${encodeURIComponent(dataInicio)}&fim=${encodeURIComponent(dataFim)}`);
+    if (!res.ok) throw new Error();
     const { ocupado } = await res.json();
     statusTexto.textContent = ocupado ? 'Indisponível' : 'Disponível';
     statusIcone.src = `./imgs/${ocupado ? 'unavailable' : 'check'}.png`;
@@ -267,47 +489,10 @@ async function atualizarStatusDisponibilidade() {
   }
 }
 
-function abrirModal(sala) {
-  salaSelecionada = sala;
-  dataSelecionada = null;
-
-  const el = (id) => document.getElementById(id);
-  el("modal-numero").textContent = `Sala ${sala.numero_sala}`;
-  el("modal-tipo").textContent = sala.tipo_sala;
-  el("modal-localizacao").textContent = sala.localizacao;
-  el("modal-capacidade").textContent = sala.capacidade;
-  el("modal-imagem").src = `/api/salas/${sala.id}/imagem`;
-
-  const setBolinha = (id, valor) => {
-    const b = el(id);
-    if (b) b.classList.toggle('preenchida', valor);
-  };
-  setBolinha('modal-projetor', sala.projetor);
-  setBolinha('modal-ar', sala.ar_condicionado);
-  setBolinha('modal-tv', sala.televisao);
-  setBolinha('modal-pc', sala.computador);
-
-  el("solicitante").value = "";
-
-  const hoje = new Date();
-  calendarioMes = hoje.getMonth();
-  calendarioAno = hoje.getFullYear();
-  renderizarCalendario();
-  inicializarHorarios();
-  atualizarStatusDisponibilidade();
-
-  document.getElementById("modal-detalhes").style.display = "flex";
-}
-
-function fecharModal() {
-  document.getElementById("modal-detalhes").style.display = "none";
-}
-
-// === RESERVA (CORRIGIDA: AVISA A PÁGINA INICIAL) ===
 async function fazerReserva() {
-  const solicitante = document.getElementById('solicitante').value.trim();
-  const inicio = document.getElementById('hora-inicio').value;
-  const fim = document.getElementById('hora-fim').value;
+  const solicitante = document.getElementById('solicitante')?.value.trim();
+  const inicio = document.getElementById('hora-inicio')?.value;
+  const fim = document.getElementById('hora-fim')?.value;
 
   if (!salaSelecionada || !dataSelecionada || !solicitante || !inicio || !fim) {
     alert('Preencha todos os campos!');
@@ -323,7 +508,8 @@ async function fazerReserva() {
   const dataFim = `${dataSelecionada} ${fim}:00`;
 
   try {
-    const verificar = await fetch(`/api/reservas/verificar-range?sala_id=${salaSelecionada.id}&inicio=${dataInicio}&fim=${dataFim}`);
+    const verificar = await fetch(`/api/reservas/verificar-range?sala_id=${salaSelecionada.id}&inicio=${encodeURIComponent(dataInicio)}&fim=${encodeURIComponent(dataFim)}`);
+    if (!verificar.ok) throw new Error();
     const { ocupado } = await verificar.json();
     if (ocupado) {
       alert('Este horário já está reservado!');
@@ -351,10 +537,14 @@ async function fazerReserva() {
     });
 
     if (res.ok) {
-      const data = await res.json();
-
-      // AVISA A PÁGINA INICIAL (EM TEMPO REAL)
       localStorage.setItem('atualizar_dashboard', Date.now().toString());
+
+      // === DISPARA NOTIFICAÇÃO GLOBAL ===
+      const notificacao = {
+        sala: `Sala ${salaSelecionada.numero_sala}`,
+        solicitante: solicitante
+      };
+      localStorage.setItem('notificacao_fim_reserva', JSON.stringify(notificacao));
 
       alert('Reserva realizada com sucesso!');
       fecharModal();
@@ -369,18 +559,9 @@ async function fazerReserva() {
   }
 }
 
-// === ATUALIZAÇÃO AUTOMÁTICA ===
 function iniciarAtualizacaoAutomatica() {
   if (intervaloAtualizacao) clearInterval(intervaloAtualizacao);
-  intervaloAtualizacao = setInterval(() => {
-    carregarSalas();
-  }, 30000);
+  intervaloAtualizacao = setInterval(carregarSalas, 30000);
 }
 
-// === EXPORTA FUNÇÕES GLOBAIS ===
-window.abrirModal = abrirModal;
-window.fecharModal = fecharModal;
-window.fazerReserva = fazerReserva;
-window.mudarMes = mudarMes;
-window.selecionarDia = selecionarDia;
-window.atualizarHoraFim = atualizarHoraFim;
+export {};

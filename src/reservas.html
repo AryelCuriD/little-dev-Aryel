@@ -9,11 +9,11 @@
 <body>
 
   <div class="salas-container">
-    <!-- Conteúdo principal -->
+
     <div class="salas-content">
-      <!-- Lista de Salas -->
+
       <div class="salas-lista" id="salas-lista">
-        <!-- Cards inseridos via JS -->
+
       </div>
 
       <!-- Filtros laterais -->
@@ -64,20 +64,22 @@
     </nav>
     <div class="icons">
       <img src="imgs/bell.png" alt="Notificações" onclick="abrirNotificacoes()" />
-      <img src="imgs/user.png" alt="Usuário" onclick="paginaUsuario()" />
+      <img src="imgs/user.png" alt="User Icon" onclick="window.location.href = '/usuario';">
     </div>
   </footer>
 
   <!-- MODAL DE DETALHES DA SALA -->
   <div id="modal-detalhes" class="modal-detalhes" style="display: none;">
     <div class="modal-content">
-      <span class="modal-close" onclick="fecharModal()">×</span>
+      <span class="modal-close" onclick="fecharModal()">x</span>
 
       <div class="modal-body">
-        <!-- IMAGEM + BOTÃO EDITAR -->
+
         <div class="modal-imagem-container">
           <img id="modal-imagem" src="./imgs/sala-placeholder.jpg" alt="Imagem da sala">
-          <button class="btn-editar-sala" onclick="abrirModalEditar()">Editar Informações</button>
+          <button class="btn-editar-sala" data-sala-id="" onclick="abrirModalEditar()">
+            Editar Informações
+          </button>
         </div>
 
         <!-- INFO + RESERVA -->
@@ -107,7 +109,6 @@
           <div class="modal-reserva">
             <div class="calendario-container">
               <div id="calendario"></div>
-
             </div>
 
             <div class="form-reserva">
@@ -115,7 +116,6 @@
               <label>Solicitante:</label>
               <input type="text" id="solicitante" placeholder="Digite seu nome">
 
-              <!-- NOVO: HORÁRIOS POR INTERVALO -->
               <div class="form-reserva-horario">
                 <label>Hora de Início:</label>
                 <select id="hora-inicio" onchange="atualizarHoraFim()">
@@ -137,76 +137,80 @@
   </div>
 
   <!-- MODAL ADICIONAR / EDITAR SALA -->
-  <div id="modal-adicionar-sala" class="modal-adicionar" style="display: none;">
-    <div class="modal-adicionar-content">
-      <span class="modal-close" onclick="fecharModalAdicionar()">×</span>
-      <div class="modal-adicionar-body">
-        <!-- IMAGEM -->
-        <div class="form-group">
-  <label>Imagem da Sala</label>
-  <div class="imagem-upload">
-    <div class="upload-input-container">
-      <input type="file" id="upload-imagem" accept="image/*" onchange="previewImagem(event)">
-      <div class="upload-btn">Escolher Arquivo</div>
-    </div>
-    <div style="text-align: center; margin-top: 12px;">
-      <img id="preview-imagem" src="./imgs/plus-photo.png" alt="Pré-visualização" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: 2px dashed #ccc;">
-    </div>
-  </div>
-</div>
-        <!-- FORMULÁRIO -->
-        <div class="form-adicionar">
-          <h3 id="modal-titulo-sala">Adicionar Nova Sala</h3>
-          <div class="form-group">
-            <label>Número da sala:</label>
-            <input type="text" id="novo-numero" placeholder="Ex: 222" maxlength="3">
+<div id="modal-adicionar-sala" class="modal-adicionar" style="display: none;">
+  <div class="modal-adicionar-content">
+    <span class="modal-close" onclick="fecharModalAdicionar()">x</span>
+    <div class="modal-adicionar-body">
+
+      <div class="form-group">
+        <label>Imagem da Sala</label>
+        <div class="imagem-upload">
+          <div class="upload-input-container">
+            <input type="file" id="upload-imagem" accept="image/*" onchange="previewImagem(event)">
+            <div class="upload-btn">Escolher Arquivo</div>
           </div>
-          <div class="checkbox-group">
-            <label>Possui Projetor:</label>
-            <span class="bolinha-checkbox" id="check-projetor" onclick="toggleBolinha(this)"></span>
+          <div style="text-align: center; margin-top: 12px;">
+
+            <img 
+              id="preview-imagem" 
+              src="./imgs/plus-photo.png" 
+              alt="Pré-visualização" 
+              style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: 2px dashed #ccc;"
+            >
           </div>
-          <div class="checkbox-group">
-            <label>Possui Ar-Condicionado:</label>
-            <span class="bolinha-checkbox" id="check-ar" onclick="toggleBolinha(this)"></span>
-          </div>
-          <div class="checkbox-group">
-            <label>Possui Televisão:</label>
-            <span class="bolinha-checkbox" id="check-tv" onclick="toggleBolinha(this)"></span>
-          </div>
-          <div class="checkbox-group">
-            <label>Possui Computador:</label>
-            <span class="bolinha-checkbox" id="check-pc" onclick="toggleBolinha(this)"></span>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Capacidade de Alunos</label>
-              <select id="novo-capacidade">
-                <option value="">Escolha uma opção</option>
-                <option value="0-20">0-20 alunos</option>
-                <option value="20-40">20-40 alunos</option>
-                <option value="40+">40+ alunos</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Localização/Piso</label>
-              <select id="novo-localizacao">
-                <option value="">Escolha uma opção</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Tipo de Sala</label>
-              <select id="novo-tipo">
-                <option value="">Escolha uma opção</option>
-              </select>
-            </div>
-          </div>
-          <button id="btn-acao-sala" class="btn-adicionar-sala" onclick="adicionarSala()">
-            Adicionar Sala
-          </button>
         </div>
+      </div>
+
+      <!-- RESTANTE DO FORMULÁRIO-->
+      <div class="form-adicionar">
+        <h3 id="modal-titulo-sala">Adicionar Nova Sala</h3>
+        <div class="form-group">
+          <label>Número da sala:</label>
+          <input type="text" id="novo-numero" placeholder="Ex: 222" maxlength="3">
+        </div>
+        <div class="checkbox-group">
+          <label>Possui Projetor:</label>
+          <span class="bolinha-checkbox" id="check-projetor" onclick="toggleBolinha(this)"></span>
+        </div>
+        <div class="checkbox-group">
+          <label>Possui Ar-Condicionado:</label>
+          <span class="bolinha-checkbox" id="check-ar" onclick="toggleBolinha(this)"></span>
+        </div>
+        <div class="checkbox-group">
+          <label>Possui Televisão:</label>
+          <span class="bolinha-checkbox" id="check-tv" onclick="toggleBolinha(this)"></span>
+        </div>
+        <div class="checkbox-group">
+          <label>Possui Computador:</label>
+          <span class="bolinha-checkbox" id="check-pc" onclick="toggleBolinha(this)"></span>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Capacidade de Alunos</label>
+            <select id="novo-capacidade">
+              <option value="">Escolha uma opção</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Localização/Piso</label>
+            <select id="novo-localizacao">
+              <option value="">Escolha uma opção</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Sala</label>
+            <select id="novo-tipo">
+              <option value="">Escolha uma opção</option>
+            </select>
+          </div>
+        </div>
+        <button id="btn-acao-sala" class="btn-adicionar-sala" onclick="adicionarSala()">
+          Adicionar Sala
+        </button>
       </div>
     </div>
   </div>
+</div>
 
   <script type="module" src="reservas.js"></script>
 </body>

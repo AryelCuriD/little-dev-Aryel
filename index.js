@@ -5,16 +5,16 @@
  * 1. Configuração
  * 2. Rotas de Páginas (HTML)
  * 3. Rotas API - Salas
- * 4. Rotas API - Reservas (PERÍODO + INTERVALO)
+ * 4. Rotas API - Reservas
  * 5. Rotas API - Devolução
  * 6. Rotas API - Dashboard e Próximas Reservas
  * 7. Inicialização do servidor
  */
-const multer = require('multer');
-const upload = multer({ storage: multer.memoryStorage() });
+
 const express = require('express');
 const path = require('path');
 const util = require('util');
+const multer = require('multer');
 const connection = require('./models/db');
 
 // === MOMENT COM FUSO BRASIL ===
@@ -27,11 +27,24 @@ try {
   moment = null;
 }
 
+// === CONFIGURAÇÃO DE UPLOAD ===
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const tipos = /jpeg|jpg|png|gif/;
+    const ext = tipos.test(file.originalname.toLowerCase());
+    const mime = tipos.test(file.mimetype);
+    cb(null, ext && mime);
+  }
+});
+
 const query = util.promisify(connection.query).bind(connection);
 const app = express();
 
-// Middlewares
-app.use(express.json());
+// === MIDDLEWARES ===
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'src')));
 
 // ===============================================
@@ -53,6 +66,32 @@ Object.entries(pages).forEach(([route, file]) => {
 // ===============================================
 // 2. ROTAS API - SALAS
 // ===============================================
+
+// ✅ OPÇÕES PARA SELECTS (tipo, localização, capacidade)
+app.get('/api/salas/opcoes', async (req, res) => {
+  try {
+    const tipos = await query(
+      'SELECT DISTINCT tipo_sala FROM salas WHERE tipo_sala IS NOT NULL ORDER BY tipo_sala'
+    );
+    const localizacoes = await query(
+      'SELECT DISTINCT localizacao FROM salas WHERE localizacao IS NOT NULL ORDER BY localizacao'
+    );
+    const capacidades = await query(
+      'SELECT DISTINCT capacidade FROM salas WHERE capacidade IS NOT NULL ORDER BY capacidade'
+    );
+
+    res.json({
+      tipos: tipos.map(t => t.tipo_sala),
+      localizacoes: localizacoes.map(l => l.localizacao),
+      capacidades: capacidades.map(c => c.capacidade)
+    });
+  } catch (err) {
+    console.error('Erro ao carregar opções:', err);
+    res.status(500).json({ error: 'Erro interno ao carregar opções' });
+  }
+});
+
+// LISTAR SALAS COM FILTROS
 app.get('/api/salas', async (req, res) => {
   try {
     const { tipo, localizacao, capacidade } = req.query;
@@ -73,11 +112,151 @@ app.get('/api/salas', async (req, res) => {
     res.json(results);
   } catch (err) {
     console.error('Erro ao buscar salas:', err);
+    res.status(500).json({ error: 'Erro interno ao buscar salas' });
+  }
+});
+
+// BUSCAR SALA POR ID
+app.get('/api/salas/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' });
+
+    const [sala] = await query(`
+      SELECT id, numero_sala, tipo_sala, localizacao, capacidade,
+             projetor, ar_condicionado, televisao, computador
+      FROM salas WHERE id = ?
+    `, [id]);
+
+    if (!sala) return res.status(404).json({ error: 'Sala não encontrada' });
+    res.json(sala);
+  } catch (err) {
+    console.error('Erro ao buscar sala:', err);
     res.status(500).json({ error: 'Erro interno' });
   }
 });
 
-// === STATUS REAL DAS SALAS (AGORA) ===
+// FILTROS PARA SELECTS
+app.get('/api/filtros-salas', async (req, res) => {
+  try {
+    const tipos = await query('SELECT DISTINCT tipo_sala FROM salas ORDER BY tipo_sala');
+    const localizacoes = await query('SELECT DISTINCT localizacao FROM salas ORDER BY localizacao');
+    const faixas = ['0-20', '20-40', '40+'];
+
+    res.json({
+      tipos: tipos.map(t => t.tipo_sala),
+      localizacoes: localizacoes.map(l => l.localizacao),
+      faixas
+    });
+  } catch (err) {
+    console.error('Erro ao carregar filtros:', err);
+    res.status(500).json({ error: 'Erro ao carregar filtros' });
+  }
+});
+
+// CRIAR SALA
+app.post('/api/salas', upload.single('imagem'), async (req, res) => {
+  try {
+    const { numero_sala, tipo_sala, localizacao, capacidade, projetor, ar_condicionado, televisao, computador } = req.body;
+    const imagem = req.file ? req.file.buffer : null;
+    const tipo_mime = req.file ? req.file.mimetype : null;
+
+    if (!numero_sala || !tipo_sala || !localizacao || !capacidade) {
+      return res.status(400).json({ error: 'Campos obrigatórios faltando' });
+    }
+
+    // Verifica se número da sala já existe
+    const [existente] = await query('SELECT 1 FROM salas WHERE numero_sala = ?', [numero_sala]);
+    if (existente) {
+      return res.status(409).json({ error: 'Já existe uma sala com este número' });
+    }
+
+    const result = await query(
+      `INSERT INTO salas 
+       (numero_sala, tipo_sala, localizacao, capacidade, projetor, ar_condicionado, televisao, computador, imagem, tipo_mime)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        numero_sala, tipo_sala, localizacao, capacidade,
+        projetor === 'true' || projetor === true,
+        ar_condicionado === 'true' || ar_condicionado === true,
+        televisao === 'true' || televisao === true,
+        computador === 'true' || computador === true,
+        imagem, tipo_mime
+      ]
+    );
+
+    res.status(201).json({ id: result.insertId, message: 'Sala criada com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao criar sala:', err);
+    res.status(500).json({ error: 'Erro interno ao criar sala' });
+  }
+});
+
+// EDITAR SALA
+app.put('/api/salas/:id', upload.single('imagem'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' });
+
+    const { numero_sala, tipo_sala, localizacao, capacidade, projetor, ar_condicionado, televisao, computador } = req.body;
+
+    if (!numero_sala || !tipo_sala || !localizacao || !capacidade) {
+      return res.status(400).json({ error: 'Campos obrigatórios faltando' });
+    }
+
+    // Verifica duplicidade de número (exceto a própria sala)
+    const [duplicado] = await query('SELECT 1 FROM salas WHERE numero_sala = ? AND id != ?', [numero_sala, id]);
+    if (duplicado) {
+      return res.status(409).json({ error: 'Já existe outra sala com este número' });
+    }
+
+    const toBool = (val) => val === true || val === 'true' || val === '1';
+
+    let sql = `UPDATE salas SET numero_sala = ?, tipo_sala = ?, localizacao = ?, capacidade = ?,
+               projetor = ?, ar_condicionado = ?, televisao = ?, computador = ?`;
+    const values = [
+      numero_sala, tipo_sala, localizacao, capacidade,
+      toBool(projetor), toBool(ar_condicionado), toBool(televisao), toBool(computador)
+    ];
+
+    if (req.file) {
+      sql += `, imagem = ?, tipo_mime = ?`;
+      values.push(req.file.buffer, req.file.mimetype);
+    }
+
+    sql += ` WHERE id = ?`;
+    values.push(id);
+
+    const result = await query(sql, values);
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Sala não encontrada' });
+
+    res.json({ message: 'Sala atualizada com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao editar sala:', err);
+    res.status(500).json({ error: 'Erro interno ao editar sala' });
+  }
+});
+
+// IMAGEM DA SALA
+app.get('/api/salas/:id/imagem', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' });
+
+    const [row] = await query('SELECT imagem, tipo_mime FROM salas WHERE id = ?', [id]);
+    if (!row || !row.imagem) {
+      return res.sendFile(path.join(__dirname, 'src', 'imgs', 'sala-placeholder.jpg'));
+    }
+    res.set('Content-Type', row.tipo_mime || 'image/jpeg');
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.send(row.imagem);
+  } catch (err) {
+    console.error('Erro ao carregar imagem:', err);
+    res.sendFile(path.join(__dirname, 'src', 'imgs', 'sala-placeholder.jpg'));
+  }
+});
+
+// STATUS DAS SALAS (OCUPADA/DISPONÍVEL)
 app.get('/api/dashboard/salas-status', async (req, res) => {
   try {
     let agora;
@@ -102,121 +281,8 @@ app.get('/api/dashboard/salas-status', async (req, res) => {
 
     res.json(status);
   } catch (err) {
-    console.error('Erro crítico no status:', err);
+    console.error('Erro no status das salas:', err);
     res.status(500).json([]);
-  }
-});
-
-// === OPÇÕES DE FILTRO (LOCALIZAÇÃO E TIPO) ===
-app.get('/api/salas/opcoes', async (req, res) => {
-  try {
-    const locResult = await query('SELECT DISTINCT localizacao FROM salas WHERE localizacao IS NOT NULL ORDER BY localizacao');
-    const tipoResult = await query('SELECT DISTINCT tipo_sala FROM salas WHERE tipo_sala IS NOT NULL ORDER BY tipo_sala');
-
-    const localizacoes = locResult.map(r => r.localizacao).filter(Boolean);
-    const tipos = tipoResult.map(r => r.tipo_sala).filter(Boolean);
-
-    res.json({ localizacoes, tipos });
-  } catch (err) {
-    console.error('Erro ao buscar opções:', err);
-    res.status(500).json({ error: 'Erro interno' });
-  }
-});
-
-// POST - ADICIONAR SALA
-app.post('/api/salas', upload.single('imagem'), async (req, res) => {
-  try {
-    const { numero_sala, tipo_sala, localizacao, capacidade, projetor, ar_condicionado, televisao, computador } = req.body;
-    const imagem = req.file ? req.file.buffer : null;
-    const tipo_mime = req.file ? req.file.mimetype : null;
-
-    if (!numero_sala || !tipo_sala || !localizacao || !capacidade) {
-      return res.status(400).json({ error: 'Campos obrigatórios faltando' });
-    }
-
-    const result = await query(
-      `INSERT INTO salas 
-       (numero_sala, tipo_sala, localizacao, capacidade, projetor, ar_condicionado, televisao, computador, imagem, tipo_mime)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        numero_sala, tipo_sala, localizacao, capacidade,
-        projetor === 'true', ar_condicionado === 'true', televisao === 'true', computador === 'true',
-        imagem, tipo_mime
-      ]
-    );
-
-    res.status(201).json({ id: result.insertId, message: 'Sala criada!' });
-  } catch (err) {
-    console.error('Erro ao criar sala:', err);
-    res.status(500).json({ error: 'Erro interno' });
-  }
-});
-
-// PUT - EDITAR SALA
-app.put('/api/salas/:id', upload.single('imagem'), async (req, res) => {
-  try {
-    const id = req.params.id;
-    const { numero_sala, tipo_sala, localizacao, capacidade, projetor, ar_condicionado, televisao, computador } = req.body;
-
-    if (!numero_sala || !tipo_sala || !localizacao || !capacidade) {
-      return res.status(400).json({ error: 'Campos obrigatórios faltando' });
-    }
-
-    const toBool = (val) => val === 'true' || val === true;
-
-    let sql = `UPDATE salas SET numero_sala = ?, tipo_sala = ?, localizacao = ?, capacidade = ?,
-               projetor = ?, ar_condicionado = ?, televisao = ?, computador = ?`;
-    const values = [numero_sala, tipo_sala, localizacao, capacidade,
-                    toBool(projetor), toBool(ar_condicionado), toBool(televisao), toBool(computador)];
-
-    if (req.file) {
-      sql += `, imagem = ?, tipo_mime = ?`;
-      values.push(req.file.buffer, req.file.mimetype);
-    }
-
-    sql += ` WHERE id = ?`;
-    values.push(id);
-
-    const result = await query(sql, values);
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'Sala não encontrada' });
-
-    res.json({ message: 'Sala atualizada!' });
-  } catch (err) {
-    console.error('Erro ao editar sala:', err);
-    res.status(500).json({ error: 'Erro interno' });
-  }
-});
-
-// FILTROS
-app.get('/api/filtros-salas', async (req, res) => {
-  try {
-    const tipos = await query('SELECT DISTINCT tipo_sala FROM salas ORDER BY tipo_sala');
-    const localizacoes = await query('SELECT DISTINCT localizacao FROM salas ORDER BY localizacao');
-    const faixas = ['0-20', '20-40', '40+'];
-
-    res.json({
-      tipos: tipos.map(t => t.tipo_sala),
-      localizacoes: localizacoes.map(l => l.localizacao),
-      faixas
-    });
-  } catch (err) {
-    console.error('Erro ao carregar filtros:', err);
-    res.status(500).json({ error: 'Erro' });
-  }
-});
-
-// IMAGEM COM PLACEHOLDER
-app.get('/api/salas/:id/imagem', async (req, res) => {
-  try {
-    const [row] = await query('SELECT imagem, tipo_mime FROM salas WHERE id = ?', [req.params.id]);
-    if (!row || !row.imagem) {
-      return res.sendFile(path.join(__dirname, 'src', 'imgs', 'sala-placeholder.jpg'));
-    }
-    res.set('Content-Type', row.tipo_mime || 'image/jpeg');
-    res.send(row.imagem);
-  } catch (err) {
-    console.error('Erro ao carregar imagem:', err);
-    res.sendFile(path.join(__dirname, 'src', 'imgs', 'sala-placeholder.jpg'));
   }
 });
 
@@ -224,7 +290,7 @@ app.get('/api/salas/:id/imagem', async (req, res) => {
 // 3. ROTAS API - RESERVAS
 // ===============================================
 
-// === VERIFICAR DISPONIBILIDADE POR INTERVALO ===
+// VERIFICAR DISPONIBILIDADE POR INTERVALO
 app.get('/api/reservas/verificar-range', async (req, res) => {
   const { sala_id, inicio, fim } = req.query;
   if (!sala_id || !inicio || !fim) {
@@ -237,7 +303,7 @@ app.get('/api/reservas/verificar-range', async (req, res) => {
       WHERE sala_id = ? AND (
         (data_inicio < ? AND data_fim > ?) OR
         (data_inicio < ? AND data_fim > ?) OR
-        (divid_inicio >= ? AND data_fim <= ?) OR
+        (data_inicio >= ? AND data_fim <= ?) OR
         (data_inicio <= ? AND data_fim >= ?)
       )
     `, [sala_id, fim, inicio, fim, inicio, inicio, fim, inicio, fim]);
@@ -249,7 +315,7 @@ app.get('/api/reservas/verificar-range', async (req, res) => {
   }
 });
 
-// === CRIAR RESERVA ===
+// CRIAR RESERVA
 app.post('/api/reservas', async (req, res) => {
   const { solicitante, data_inicio, data_fim, sala_id } = req.body;
   if (!solicitante || !data_inicio || !data_fim || !sala_id) {
@@ -283,10 +349,10 @@ app.post('/api/reservas', async (req, res) => {
 });
 
 // ===============================================
-// 4. ROTAS API - DEVOLUÇÃO (USANDO devolucao_estojo)
+// 4. ROTAS API - DEVOLUÇÃO (estojo)
 // ===============================================
 
-// === LISTAR DEVOLUÇÕES ===
+// LISTAR DEVOLUÇÕES
 app.get('/api/devolucoes', async (req, res) => {
   const { inicio, fim, sala_id } = req.query;
 
@@ -343,7 +409,7 @@ app.get('/api/devolucoes', async (req, res) => {
   }
 });
 
-// === CRIAR DEVOLUÇÃO ===
+// CRIAR DEVOLUÇÃO
 app.post('/api/devolucoes', async (req, res) => {
   const { reserva_id, estojo, observacao } = req.body;
 
@@ -364,14 +430,14 @@ app.post('/api/devolucoes', async (req, res) => {
       [reserva_id, estojo_completo, observacao || null]
     );
 
-    res.status(201).json({ id: result.insertId });
+    res.status(201).json({ id: result.insertId, message: 'Devolução registrada!' });
   } catch (err) {
     console.error('Erro ao criar devolução:', err);
     res.status(500).json({ error: 'Erro interno' });
   }
 });
 
-// === RESERVAS PENDENTES DE DEVOLUÇÃO ===
+// RESERVAS PENDENTES DE DEVOLUÇÃO
 app.get('/api/reservas/pendentes-devolucao', async (req, res) => {
   try {
     const pendentes = await query(`
@@ -411,7 +477,7 @@ app.get('/api/reservas/pendentes-devolucao', async (req, res) => {
 // 5. DASHBOARD + PRÓXIMAS RESERVAS
 // ===============================================
 
-// === TODAS AS RESERVAS ATIVAS/FUTURAS (COM DIA) ===
+// PRÓXIMAS RESERVAS
 app.get('/api/reservas/proximas', async (req, res) => {
   try {
     const agora = new Date();
@@ -445,7 +511,7 @@ app.get('/api/reservas/proximas', async (req, res) => {
   }
 });
 
-// === DASHBOARD PRINCIPAL (CORRIGIDO) ===
+// DASHBOARD PRINCIPAL
 app.get('/api/dashboard', async (req, res) => {
   try {
     const [salasResult] = await query("SELECT COUNT(*) AS total FROM salas WHERE tipo_sala LIKE '%aula%' OR tipo_sala LIKE 'Sala%'");
@@ -482,12 +548,17 @@ app.get('/api/dashboard', async (req, res) => {
 });
 
 // ===============================================
-// 6. INICIALIZAÇÃO
+// 6. INICIALIZAÇÃO DO SERVIDOR
 // ===============================================
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
+
 app.listen(PORT, () => {
-  console.log(`\nServidor rodando em http://localhost:${PORT}`);
   console.log(`  • Home: http://localhost:${PORT}`);
   console.log(`  • Reservas: http://localhost:${PORT}/reservas`);
-  console.log(`  • Relatórios: http://localhost:${PORT}/relatorios\n`);
+  console.log(`  • Relatórios: http://localhost:${PORT}/relatorios`);
+});
+
+// Tratamento de erro global
+process.on('unhandledRejection', (err) => {
+  console.error('Erro não tratado:', err);
 });

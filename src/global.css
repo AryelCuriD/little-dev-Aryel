@@ -81,3 +81,126 @@ footer {
   vertical-align: middle;
   cursor: pointer;
 }
+
+/* ================================= */
+/* MODO ESCURO FORÇADO - 100% COBERTURA */
+/* ================================= */
+
+:root {
+  --bg: #f1f1f1;
+  --card-bg: white;
+  --table-bg: white;
+  --text: #333;
+  --border: #ccc;
+  --primary: #192A6B;
+}
+
+.dark-mode {
+  --bg: #0d0d0d;
+  --card-bg: #1a1a1a;
+  --table-bg: #141414;
+  --text: #ffffff;
+  --border: #2a2a2a;
+  --primary: #4a90ff;
+}
+
+/* === FORÇA FUNDO ESCURO EM TODOS OS CONTAINERS === */
+.dark-mode body,
+.dark-mode [class*="container"],
+.dark-mode .home-container,
+.dark-mode .relatorios-container,
+.dark-mode .usuario-container,
+.dark-mode .salas-container,
+.dark-mode .dashboard,
+.dark-mode .content,
+.dark-mode .main-content,
+.dark-mode .relatorio-main {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* === TODAS AS DIVS, CARDS, SECTIONS === */
+.dark-mode div,
+.dark-mode section,
+.dark-mode article,
+.dark-mode .card,
+.dark-mode .dashboard-card,
+.dark-mode .estatisticas-card,
+.dark-mode .relatorio-card,
+.dark-mode .grafico-container,
+.dark-mode .tabela-container,
+.dark-mode .filtros,
+.dark-mode .sala-card,
+.dark-mode .modal-content,
+.dark-mode .conteudo-principal {
+  background-color: var(--card-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* === TABELAS E LINHAS === */
+.dark-mode table,
+.dark-mode thead,
+.dark-mode tbody,
+.dark-mode tr,
+.dark-mode th,
+.dark-mode td,
+.dark-mode .tabela-proximas,
+.dark-mode #tabela-relatorio {
+  background-color: var(--table-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+.dark-mode th,
+.dark-mode .tabela-proximas th {
+  background-color: #222 !important;
+}
+
+/* === TODOS OS TEXTOS === */
+.dark-mode * {
+  color: var(--text) !important;
+}
+
+/* === EXCEÇÃO: BOTÕES E LINKS === */
+.dark-mode .btn-reservar,
+.dark-mode .btn-adicionar-sala,
+.dark-mode .btn-editar-sala,
+.dark-mode .btn-detalhes,
+.dark-mode .btn-gerar-relatorio,
+.dark-mode a,
+.dark-mode .paginas a {
+  color: white !important;
+  background-color: var(--primary) !important;
+}
+
+/* === INPUTS E SELECTS === */
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+  background-color: #222 !important;
+  color: white !important;
+  border: 1px solid #444 !important;
+}
+
+/* === PLACEHOLDERS === */
+.dark-mode input::placeholder {
+  color: #aaa !important;
+}
+
+#badge-notificacao {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #f87171;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}

@@ -1,7 +1,7 @@
 .usuario-container {
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Alinha ao topo do container */
+  align-items: flex-start; 
   padding: 40px 0;
   background-color: #f1f1f1;
   min-height: calc(100vh - 70px);
@@ -47,24 +47,24 @@
   border-radius: 0 10px 10px 0;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
   display: flex;
-  justify-content: flex-start; /* Alinha conteúdo ao topo */
-  align-items: center; /* Mantém alinhamento horizontal */
+  justify-content: flex-start; 
+  align-items: center;
   flex-direction: column;
-  padding: 20px; /* Margem geral, ajustada */
+  padding: 20px; 
 }
 
 .card-conteudo {
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Conteúdo começa no topo */
-  padding-top: 20px; /* Margem superior mínima */
+  justify-content: flex-start;
+  padding-top: 20px;
   text-align: center;
-  width: 100%; /* Garante que ocupe a largura total */
+  width: 100%;
 }
 
 .card-conteudo.ativo {
-  display: block;
+  display: flex;
 }
 
 .icone-grande {
@@ -126,9 +126,9 @@
 }
 
 .card-conteudo {
-  display: none; /* esconde todos por padrão */
+  display: none;
 }
 
 .card-conteudo.ativo {
-  display: flex; /* exibe apenas o ativo */
+  display: flex;
 }

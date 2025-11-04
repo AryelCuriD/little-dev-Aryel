@@ -10,7 +10,7 @@
 </head>
 <body>
 
-  <!-- HEADER PADRÃO -->
+
   <div class="container">
     <div class="top-row">
       <div class="div-tabela"></div>
@@ -21,7 +21,6 @@
     </div>
   </div>
 
-  <!-- CONTEÚDO -->
   <main class="container-relatorios">
 
     <!-- TABELA DE DEVOLUÇÕES -->
@@ -130,15 +129,15 @@
       <a href="/relatorios" data-page="relatorios">Relatórios</a>
     </nav>
     <div class="icons">
-      <img src="imgs/bell.png" alt="Notificações" onclick="abrirNotificacoes()">
-      <img src="imgs/user.png" alt="Usuário" onclick="paginaUsuario()">
+      <img src="imgs/bell.png" alt="Bell Icon" onclick="abrirNotificacoes()">
+      <img src="imgs/user.png" alt="User Icon" onclick="window.location.href = '/usuario';">
     </div>
   </footer>
 
   <!-- jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
-  <!-- SEU SCRIPT -->
+
   <script type="module" src="relatorios.js"></script>
 
 </body>
